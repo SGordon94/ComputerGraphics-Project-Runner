@@ -86,17 +86,16 @@ public class View implements GLEventListener {
 	@Override
 	public void display(GLAutoDrawable drawable) {
 		// TODO Auto-generated method stub
-		updateProjection(drawable);
 
-		update(drawable);
+		update();
 		render(drawable);
 
 	}
 
 	@Override
-	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-		// TODO Auto-generated method stub
-
+	public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) {
+		this.w = w;
+		this.h = h;
 	}
 
 	// **********************************************************************
@@ -133,30 +132,18 @@ public class View implements GLEventListener {
 	// Private Methods (Viewport)
 	// **********************************************************************
 
-	private void updateProjection(GLAutoDrawable drawable) {
-		GL2 gl = drawable.getGL().getGL2();
+	private void setProjection(GL2 gl) {
 		GLU glu = new GLU();
 
-//		float xmin = (float) (origin.x - 1.0);
-//		float xmax = (float) (origin.x + 1.0);
-//		float ymin = (float) (origin.y - 1.0);
-//		float ymax = (float) (origin.y + 1.0);
-//
-//		gl.glMatrixMode(GL2.GL_PROJECTION); // Prepare for matrix xform
-//		gl.glLoadIdentity(); // Set to identity matrix
-//		glu.gluOrtho2D(xmin, xmax, ymin, ymax); // 2D translate and scale
-
 		gl.glMatrixMode(GL2.GL_PROJECTION);
-
 		gl.glLoadIdentity();
-
-		glu.gluOrtho2D(0.0f, 1000.0f, 0.0f, 450.0f);
+		glu.gluOrtho2D(0.0f, 1000.0f, 450.0f, 0.0f);
 	}
 	// **********************************************************************
 	// Private Methods (Rendering)
 	// **********************************************************************
 
-	private void update(GLAutoDrawable drawable) {
+	private void update() {
 		counter++; // Counters are useful, right?
 	}
 
@@ -164,14 +151,22 @@ public class View implements GLEventListener {
 		GL2 gl = drawable.getGL().getGL2();
 
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT); // Clear the buffer
-		drawCursorCoordinates(drawable); // Draw some text
+		
+		setProjection(gl);
+		
+		//drawBackground(gl);
+		drawGround(gl);
 		drawAxes(gl);
+		drawCursorCoordinates(gl); // Draw some text
+		
+		
+		
 	}
 
 	// **********************************************************************
 	// Private Methods (Scene)
 	// **********************************************************************
-	private void drawCursorCoordinates(GLAutoDrawable drawable) {
+	private void drawCursorCoordinates(GL2 gl) {
 		if (cursor == null)
 			return;
 
@@ -179,7 +174,7 @@ public class View implements GLEventListener {
 		String sy = FORMAT.format(new Double(cursor.y));
 		String s = "(" + sx + "," + sy + ")";
 
-		renderer.beginRendering(drawable.getWidth(), drawable.getHeight());
+		renderer.beginRendering(this.getWidth(), this.getHeight());
 		renderer.setColor(1.0f, 1.0f, 0, 1.0f);
 		renderer.draw(s, 2, 2);
 		renderer.endRendering();
@@ -195,6 +190,39 @@ public class View implements GLEventListener {
 		gl.glVertex2d(0.0, -10.0);
 		gl.glVertex2d(0.0, 10.0);
 
+		gl.glEnd();
+	}
+	
+	private void drawBackground(GL2 gl){
+		gl.glBegin(GL2.GL_POLYGON);
+		
+		gl.glColor3f(1.0f, 0.0f, 0.0f);
+		
+		gl.glVertex2f(0, 0);
+		gl.glVertex2f(this.getWidth(), 0);
+		gl.glVertex2f(this.getWidth(), this.getHeight());
+		gl.glVertex2f(0, this.getHeight());
+		
+		gl.glColor3f(0, 0, 0);
+		
+		gl.glEnd();
+	}
+	
+	private void drawGround(GL2 gl) {
+		gl.glBegin(GL2.GL_POLYGON);
+		
+		gl.glColor3f(1.0f, 0.0f, 1.0f);
+		
+		int yo = this.getHeight()/2;
+		
+		gl.glVertex2i(0, yo);
+		gl.glVertex2i(this.getWidth(), yo);
+		gl.glVertex2i(this.getWidth(), this.getHeight());
+		gl.glVertex2i(0, this.getHeight());
+		
+		gl.glColor3f(0, 0, 0);
+		
+		
 		gl.glEnd();
 	}
 

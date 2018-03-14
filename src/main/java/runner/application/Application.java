@@ -1,5 +1,6 @@
 package runner.application;
 
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -25,13 +26,16 @@ public final class Application {
 	public static void main(String[] args) {
 		GLProfile profile = GLProfile.getDefault();
 		GLCapabilities capabilities = new GLCapabilities(profile);
-		// GLCanvas canvas = new GLCanvas(capabilities);
 		GLJPanel canvas = new GLJPanel(capabilities);
 		JFrame frame = new JFrame("Application");
+		
+		canvas.setPreferredSize(new Dimension(1000, 450));
 
 		frame.setBounds(DEFAULT_BOUNDS);
 		frame.getContentPane().add(canvas);
+		frame.pack();
 		frame.setVisible(true);
+		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		frame.addWindowListener(new WindowAdapter() {
