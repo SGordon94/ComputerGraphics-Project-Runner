@@ -88,14 +88,20 @@ public class Runner extends JFrame implements GLEventListener {
 		GL2 gl = drawable.getGL().getGL2();
 		GLU glu = new GLU();
 
-		float xmin = (float) (0.0 - 1.0);
-		float xmax = (float) (0.0 + 1.0);
-		float ymin = (float) (0.0 - 1.0);
-		float ymax = (float) (0.0 + 1.0);
-
-		gl.glMatrixMode(GL2.GL_PROJECTION); // Prepare for matrix xform
-		gl.glLoadIdentity(); // Set to identity matrix
-		glu.gluOrtho2D(xmin, xmax, ymin, ymax); // 2D translate and scale
+		// float xmin = (float) (0.0 - 1.0);
+		// float xmax = (float) (0.0 + 1.0);
+		// float ymin = (float) (0.0 - 1.0);
+		// float ymax = (float) (0.0 + 1.0);
+		//
+		// gl.glMatrixMode(GL2.GL_PROJECTION); // Prepare for matrix xform
+		// gl.glLoadIdentity(); // Set to identity matrix
+		// glu.gluOrtho2D(xmin, xmax, ymin, ymax); // 2D translate and scale
+		
+		gl.glMatrixMode(GL2.GL_PROJECTION);
+		
+		gl.glLoadIdentity();
+		
+		glu.gluOrtho2D(0.0f, 1280.0f, 0.0f, 720.0f);
 	}
 
 	private void drawFrameCount(GLAutoDrawable drawable) {

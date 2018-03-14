@@ -101,7 +101,7 @@ def altJvmArgs = ['-Xms128m', '-Xmx768m', '-noclassgc',\
  '-Dapple.awt.antialiasing=on', '-Dapple.awt.graphics.UseQuartz=true', ]
 
 // Create scripts for alternate entry points (main() methods)
-// createScript(project, 'edu.ou.cs.cg.example.Gasket', 'gasket', altJvmArgs)
+createScript(project, 'runner.application.Application', 'app', altJvmArgs)
 // createScript(project, 'edu.ou.cs.cg.example.Lorenz', 'lorenz', altJvmArgs)
 // createScript(project, 'edu.ou.cs.cg.example.Template', 'template', altJvmArgs)
 // createScript(project, 'edu.ou.cs.cg.example.Viewport', 'viewport', altJvmArgs)

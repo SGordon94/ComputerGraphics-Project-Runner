@@ -66,3 +66,4 @@ local.properties
 
 # exclude build folder from gradle build
 /build/*
+/build/

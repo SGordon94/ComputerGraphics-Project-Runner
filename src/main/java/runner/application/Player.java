@@ -16,10 +16,10 @@ public class Player {
 	
 	public Player(Runner runner) {
 		instance = runner.getInstance();
-		x = 0.0f;
-		y = 0.0f;
-		width = 0.1f;
-		height = 0.1f;
+		x = 25;
+		y = 25;
+		width = 50;
+		height = 50;
 		
 		red = 1.0f;
 		green = 0.0f;
