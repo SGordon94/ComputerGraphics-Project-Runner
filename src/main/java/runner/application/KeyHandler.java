@@ -1,13 +1,10 @@
 package runner.application;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
 
-import com.jogamp.opengl.awt.GLJPanel;
+//import com.jogamp.opengl.awt.GLJPanel;
 
 public class KeyHandler{
 	private static Runner instance;
