@@ -80,8 +80,8 @@ public class View implements GLEventListener {
 
 		addCloud();
 		try {
-			for (int i = 0; i < 20; i++) {
-				
+			for (;;) {
+
 				TimeUnit.SECONDS.sleep(rand.nextInt(5) + 1);
 				addCloud();
 			}
@@ -197,12 +197,14 @@ public class View implements GLEventListener {
 		drawDino(gl);
 
 		for (Point pos : pointsList) {
-			pos.setLocation(pos.getX() - 3, pos.getY());
+			if (pos.getX() <= 0) {
+				pointsList.remove(pos);
+				break;
+			}
+			pos.setLocation(pos.getX() - 2, pos.getY());
 			drawCloud(gl, pos);
-
 		}
 
-		// System.out.println(pointsList.size());
 		if (saur.getInJumpState())
 			animateJump(gl);
 
@@ -335,26 +337,24 @@ public class View implements GLEventListener {
 		}
 	}
 
-	int jumpModifier = -15;
-
 	public void animateJump(GL2 gl) {
-		
-		if(shortJump == 1 && jumpModifier < 0){
+
+		if (shortJump == 1 && jumpModifier < 0) {
 			System.out.println("shorty");
 			jumpModifier *= -1;
 			shortJump = 2;
 		}
-		
+
 		if (saur.getY() < 190 && jumpModifier < 0) {
-				System.out.println("down");
-				jumpModifier *= -1;
+			System.out.println("down");
+			jumpModifier *= -1;
 		}
-		
+
 		if (saur.getY() > 360) {
 			saur.setInJumpState(false);
 			shortJump = 0;
 			saur.setY(360);
-			jumpModifier = -15;
+			jumpModifier = -10;
 		}
 
 		saur.setY(saur.getY() + jumpModifier);
