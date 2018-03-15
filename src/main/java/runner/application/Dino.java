@@ -4,22 +4,30 @@ import java.awt.Point;
 
 public class Dino {
 
+	private int width;
+	private int height;
+
 	private Point pos;
 
 	private boolean inJumpState;
 
 	public Dino() {
+
 		this.pos = new Point(0, 0);
 		inJumpState = false;
 	}
 
-	public Dino(Point point) {
+	public Dino(Point point, int width, int height) {
 		this.pos = point;
 		inJumpState = false;
+		this.width = width;
+		this.height = height;
 	}
 
-	public Dino(int x, int y) {
+	public Dino(int x, int y, int width, int height) {
 		this.pos = new Point(x, y);
+		this.width = width;
+		this.height = height;
 		inJumpState = false;
 	}
 
@@ -51,6 +59,22 @@ public class Dino {
 		this.pos = new Point(x, y);
 	}
 
+	public int getWidth() {
+		return width;
+	}
+
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public void setHeight(int height) {
+		this.height = height;
+	}
+
 	// public void drawDino(GL2 gl) {
 	// gl.glBegin(GL2.GL_POLYGON);
 	// gl.glColor3d(0.403922, 0.560784, 0);
@@ -64,7 +88,7 @@ public class Dino {
 	// }
 
 	public void jump() {
-		System.out.println("Jump");
+		// System.out.println("Jump");
 		this.setInJumpState(true);
 	}
 
