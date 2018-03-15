@@ -8,13 +8,11 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
-
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
@@ -58,11 +56,14 @@ public class View implements GLEventListener {
 	// **********************************************************************
 	// Constructors and Finalizer
 	// **********************************************************************
+	ArrayList<Cloud> cloudList;
 
 	public View(GLJPanel canvas) {
 
-		this.saur = new Dino(80, 360);
+		this.saur = new Dino(80, 360, 40, 60);
+
 		this.canvas = canvas;
+
 		cursor = null;
 
 		// Initialize model
@@ -74,7 +75,8 @@ public class View implements GLEventListener {
 		animator.start();
 
 		new KeyHandler(this);
-		pointsList = new ArrayList<Point>();
+		// pointsList = new ArrayList<Point>();
+		this.cloudList = new ArrayList<Cloud>();
 		rand = new Random();
 		// new MouseHandler(this);
 
@@ -196,13 +198,23 @@ public class View implements GLEventListener {
 		drawCursorCoordinates(gl); // Draw some text
 		drawDino(gl);
 
-		for (Point pos : pointsList) {
-			if (pos.getX() <= 0) {
-				pointsList.remove(pos);
+		// for (Point pos : pointsList) {
+		// if (pos.getX() <= 0) {
+		// pointsList.remove(pos);
+		// break;
+		// }
+		// pos.setLocation(pos.getX() - 2, pos.getY());
+		// drawCloud(gl, pos);
+		// }
+
+		for (Cloud cloud : cloudList) {
+			if (cloud.getX() <= 0) {
+				cloudList.remove(cloud);
 				break;
 			}
-			pos.setLocation(pos.getX() - 2, pos.getY());
-			drawCloud(gl, pos);
+
+			cloud.setX(cloud.getX() - cloud.getSpeed());
+			drawCloud(gl, cloud);
 		}
 
 		if (saur.getInJumpState())
@@ -231,10 +243,13 @@ public class View implements GLEventListener {
 		gl.glBegin(GL2.GL_POLYGON);
 
 		gl.glColor3d(0.0470588, 0.192157, 0.4);
-
 		gl.glVertex2f(0, 0);
 		gl.glVertex2f(this.getWidth(), 0);
+
+		gl.glColor3d(0.992157, 0.490196, 0.00392157);
+
 		gl.glVertex2f(this.getWidth(), this.getHeight());
+
 		gl.glVertex2f(0, this.getHeight());
 
 		gl.glEnd();
@@ -290,15 +305,15 @@ public class View implements GLEventListener {
 		gl.glColor3d(0.403922, 0.560784, 0);
 
 		gl.glVertex2d(pos.getX(), pos.getY());
-		gl.glVertex2d(pos.getX(), pos.getY() + 40);
-		gl.glVertex2d(pos.getX() + 50, pos.getY() + 40);
-		gl.glVertex2d(pos.getX() + 50, pos.getY());
+		gl.glVertex2d(pos.getX(), pos.getY() + saur.getHeight());
+		gl.glVertex2d(pos.getX() + saur.getWidth(), pos.getY() + saur.getHeight());
+		gl.glVertex2d(pos.getX() + saur.getWidth(), pos.getY());
 
 		gl.glEnd();
 
 	}
 
-	public ArrayList<Point> pointsList;
+	// public ArrayList<Point> pointsList;
 	public Random rand;
 	int jumpModifier = -10;
 	// Used if spacebar is let go early
@@ -307,11 +322,12 @@ public class View implements GLEventListener {
 	public void addCloud() {
 		int x = 1020;
 		int y = rand.nextInt(300 + 1 - 20) + 20;
-
-		pointsList.add(new Point(x, y));
+		// pointsList.add(new Point(x, y));
+		cloudList.add(new Cloud(x, y, rand.nextInt(5) + 1, 38, 28));
 	}
 
-	public void drawCloud(GL2 gl, Point pos) {
+	// public void drawCloud(GL2 gl, Point pos) {
+	public void drawCloud(GL2 gl, Cloud pos) {
 		gl.glBegin(GL2.GL_POLYGON);
 		gl.glColor3d(0.662745, 0.662745, 0.662745);
 
@@ -340,13 +356,13 @@ public class View implements GLEventListener {
 	public void animateJump(GL2 gl) {
 
 		if (shortJump == 1 && jumpModifier < 0) {
-			System.out.println("shorty");
+			// System.out.println("shorty");
 			jumpModifier *= -1;
 			shortJump = 2;
 		}
 
 		if (saur.getY() < 190 && jumpModifier < 0) {
-			System.out.println("down");
+			// System.out.println("down");
 			jumpModifier *= -1;
 		}
 
@@ -358,6 +374,8 @@ public class View implements GLEventListener {
 		}
 
 		saur.setY(saur.getY() + jumpModifier);
+
+		// collision
 
 		// if (player.getY() + player.getHeight() > jumpHeightLimit)
 		// jumpModifier *= -1;
