@@ -60,7 +60,7 @@ public class View implements GLEventListener {
 
 	public View(GLJPanel canvas) {
 
-		this.saur = new Dino(80, 360, 40, 60);
+		this.saur = new Dino(200, 360, 60, 60);
 
 		this.canvas = canvas;
 
@@ -329,6 +329,7 @@ public class View implements GLEventListener {
 	// public void drawCloud(GL2 gl, Point pos) {
 	public void drawCloud(GL2 gl, Cloud pos) {
 		gl.glBegin(GL2.GL_POLYGON);
+
 		gl.glColor3d(0.662745, 0.662745, 0.662745);
 
 		// gl.glVertex2d(pos.getX(), pos.getY());
@@ -374,6 +375,23 @@ public class View implements GLEventListener {
 		}
 
 		saur.setY(saur.getY() + jumpModifier);
+
+		try {
+			// collision bitch
+			for (Cloud cloud : cloudList) {
+				boolean isAbove = (saur.getY() < cloud.getY() + 50);
+				boolean isBetweenL = (saur.getX() < cloud.getX());
+				boolean isBetweenR = (saur.getX() + saur.getWidth() > cloud.getXOffset());
+
+				if (isAbove && isBetweenL && isBetweenR) {
+					cloudList.remove(cloud);
+					// System.out.println("no");
+				}
+
+			}
+		} catch (Exception e) {
+			// lol
+		}
 
 		// collision
 
