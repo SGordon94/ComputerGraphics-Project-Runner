@@ -2,6 +2,7 @@ package runner.application;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.util.Random;
@@ -36,11 +37,14 @@ public class View implements GLEventListener {
 	// State (internal) variables
 	private final GLJPanel canvas;
 
+	// dino model
+	private Dino saur;
+
 	private int counter = 0; // Just an animation counter
 	private int w; // Canvas width
 	private int h; // Canvas height
 
-	// private final KeyHandler keyHandler;
+	private final KeyHandler keyHandler;
 	private final MouseHandler mouseHandler;
 
 	private final FPSAnimator animator;
@@ -55,6 +59,7 @@ public class View implements GLEventListener {
 	// **********************************************************************
 
 	public View(GLJPanel canvas) {
+		this.saur = new Dino(80, 360);
 		this.canvas = canvas;
 		cursor = null;
 		// Initialize model
@@ -65,7 +70,7 @@ public class View implements GLEventListener {
 		animator = new FPSAnimator(canvas, DEFAULT_FRAMES_PER_SECOND);
 		// animator.start();
 
-		// keyHandler = new KeyHandler(this);
+		keyHandler = new KeyHandler(this);
 		mouseHandler = new MouseHandler(this);
 	}
 
@@ -151,16 +156,15 @@ public class View implements GLEventListener {
 		GL2 gl = drawable.getGL().getGL2();
 
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT); // Clear the buffer
-		
+
 		setProjection(gl);
-		
-		//drawBackground(gl);
+
+		// drawBackground(gl);
 		drawGround(gl);
 		drawAxes(gl);
 		drawCursorCoordinates(gl); // Draw some text
-		
-		
-		
+		drawDino(gl);
+
 	}
 
 	// **********************************************************************
@@ -192,37 +196,36 @@ public class View implements GLEventListener {
 
 		gl.glEnd();
 	}
-	
-	private void drawBackground(GL2 gl){
+
+	private void drawBackground(GL2 gl) {
 		gl.glBegin(GL2.GL_POLYGON);
-		
+
 		gl.glColor3f(1.0f, 0.0f, 0.0f);
-		
+
 		gl.glVertex2f(0, 0);
 		gl.glVertex2f(this.getWidth(), 0);
 		gl.glVertex2f(this.getWidth(), this.getHeight());
 		gl.glVertex2f(0, this.getHeight());
-		
+
 		gl.glColor3f(0, 0, 0);
-		
+
 		gl.glEnd();
 	}
-	
+
 	private void drawGround(GL2 gl) {
 		gl.glBegin(GL2.GL_POLYGON);
-		
+
 		gl.glColor3f(1.0f, 0.0f, 1.0f);
-		
-		int yo = this.getHeight()/2;
-		
+
+		int yo = this.getHeight() / 2;
+
 		gl.glVertex2i(0, yo);
 		gl.glVertex2i(this.getWidth(), yo);
 		gl.glVertex2i(this.getWidth(), this.getHeight());
 		gl.glVertex2i(0, this.getHeight());
-		
+
 		gl.glColor3f(0, 0, 0);
-		
-		
+
 		gl.glEnd();
 	}
 
@@ -232,6 +235,20 @@ public class View implements GLEventListener {
 	public Component getComponent() {
 		// TODO Auto-generated method stub
 		return (Component) canvas;
+	}
+
+	private void drawDino(GL2 gl) {
+		Point pos = saur.getPos();
+		gl.glBegin(GL2.GL_POLYGON);
+		gl.glColor3d(0.403922, 0.560784, 0);
+
+		gl.glVertex2d(pos.getX(), pos.getY());
+		gl.glVertex2d(pos.getX(), pos.getY() + 40);
+		gl.glVertex2d(pos.getX() + 50, pos.getY() + 40);
+		gl.glVertex2d(pos.getX() + 50, pos.getY());
+
+		gl.glEnd();
+
 	}
 
 }
