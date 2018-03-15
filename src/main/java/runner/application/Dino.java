@@ -3,7 +3,7 @@ package runner.application;
 import java.awt.Point;
 
 public class Dino {
-	
+
 	private int width;
 	private int height;
 
@@ -12,7 +12,7 @@ public class Dino {
 	private boolean inJumpState;
 
 	public Dino() {
-		
+
 		this.pos = new Point(0, 0);
 		inJumpState = false;
 	}
@@ -58,7 +58,7 @@ public class Dino {
 	public void setPos(int x, int y) {
 		this.pos = new Point(x, y);
 	}
-	
+
 	public int getWidth() {
 		return width;
 	}
@@ -88,7 +88,7 @@ public class Dino {
 	// }
 
 	public void jump() {
-		System.out.println("Jump");
+		// System.out.println("Jump");
 		this.setInJumpState(true);
 	}
 

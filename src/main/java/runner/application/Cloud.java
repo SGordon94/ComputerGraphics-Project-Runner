@@ -9,7 +9,6 @@ public class Cloud {
 	private int height;
 
 	public Cloud(int x, int y, int speed, int width, int height) {
-		super();
 		this.x = x;
 		this.y = y;
 		this.speed = speed;
