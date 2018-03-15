@@ -43,6 +43,8 @@ public final class MouseHandler extends MouseAdapter {
 		Point2D.Double v = calcCoordinatesInView(e.getX(), e.getY());
 
 		view.setCursor(v);
+
+		// System.out.println(e.getX() + " " + e.getY());
 	}
 
 	// **********************************************************************
@@ -52,9 +54,9 @@ public final class MouseHandler extends MouseAdapter {
 	private Point2D.Double calcCoordinatesInView(int sx, int sy) {
 		int w = sx;
 		int h = sy;
-		//Point2D.Double p = view.getOrigin();
-		//double vx = p.x + (sx * 2.0) / w - 1.0;
-		//double vy = p.y - (sy * 2.0) / h + 1.0;
+		// Point2D.Double p = view.getOrigin();
+		// double vx = p.x + (sx * 2.0) / w - 1.0;
+		// double vy = p.y - (sy * 2.0) / h + 1.0;
 
 		return new Point2D.Double(w, h);
 	}

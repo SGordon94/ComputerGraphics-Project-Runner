@@ -2,17 +2,15 @@ package runner.application;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.util.Random;
-
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
-
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
@@ -36,12 +34,15 @@ public class View implements GLEventListener {
 	// State (internal) variables
 	private final GLJPanel canvas;
 
+	// dino model
+	private Dino saur;
+
 	private int counter = 0; // Just an animation counter
 	private int w; // Canvas width
 	private int h; // Canvas height
 
 	// private final KeyHandler keyHandler;
-	private final MouseHandler mouseHandler;
+	// private final MouseHandler mouseHandler;
 
 	private final FPSAnimator animator;
 
@@ -55,19 +56,26 @@ public class View implements GLEventListener {
 	// **********************************************************************
 
 	public View(GLJPanel canvas) {
+
+		this.saur = new Dino(80, 360);
 		this.canvas = canvas;
 		cursor = null;
+
 		// Initialize model
 		origin = new Point2D.Double(0.0, 0.0);
 
 		// Initialize rendering
 		canvas.addGLEventListener(this);
 		animator = new FPSAnimator(canvas, DEFAULT_FRAMES_PER_SECOND);
-		 animator.start();
+		animator.start();
 
-		// keyHandler = new KeyHandler(this);
-		mouseHandler = new MouseHandler(this);
+		new KeyHandler(this);
+		// new MouseHandler(this);
 	}
+
+	// **********************************************************************
+	// Override Methods (GLEventListener)
+	// **********************************************************************
 
 	@Override
 	public void init(GLAutoDrawable drawable) {
@@ -87,6 +95,9 @@ public class View implements GLEventListener {
 	public void display(GLAutoDrawable drawable) {
 		update();
 		render(drawable);
+		// if (player.isJumping())
+		// animateJump(gl);
+
 	}
 
 	@Override
@@ -125,6 +136,14 @@ public class View implements GLEventListener {
 		canvas.repaint();
 	}
 
+	public Dino getDino() {
+		return saur;
+	}
+
+	public void setDino(Dino saur) {
+		this.saur = saur;
+	}
+
 	// **********************************************************************
 	// Private Methods (Viewport)
 	// **********************************************************************
@@ -150,13 +169,17 @@ public class View implements GLEventListener {
 		GL2 gl = drawable.getGL().getGL2();
 
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT); // Clear the buffer
-		
+
 		setProjection(gl);
-		
+
 		drawBackground(gl);
 		drawGround(gl);
 		drawCursorCoordinates(gl); // Draw some text
-		
+		drawDino(gl);
+
+		if (saur.getInJumpState())
+			animateJump(gl);
+
 	}
 
 	// **********************************************************************
@@ -175,48 +198,47 @@ public class View implements GLEventListener {
 		renderer.draw(s, 2, 2);
 		renderer.endRendering();
 	}
-	
-	private void drawBackground(GL2 gl){
+
+	private void drawBackground(GL2 gl) {
 		gl.glBegin(GL2.GL_POLYGON);
-		
+
 		gl.glColor3f(1.0f, 0.0f, 0.0f);
-		
+
 		gl.glVertex2f(0, 0);
 		gl.glVertex2f(this.getWidth(), 0);
 		gl.glVertex2f(this.getWidth(), this.getHeight());
 		gl.glVertex2f(0, this.getHeight());
-		
+
 		gl.glEnd();
 	}
-	
+
 	private void drawGround(GL2 gl) {
 		gl.glBegin(GL2.GL_POLYGON);
-		
-		int yo = 2*(this.getHeight()/3); // 2/3 the height
-		
+
+		int yo = 2 * (this.getHeight() / 3); // 2/3 the height
+
 		gl.glColor3f(1.0f, 0.0f, 1.0f);
 		gl.glVertex2i(0, yo);
-		gl.glVertex2i(this.getWidth(), yo);		
-		gl.glVertex2i(this.getWidth(), this.getHeight());		
+		gl.glVertex2i(this.getWidth(), yo);
+		gl.glVertex2i(this.getWidth(), this.getHeight());
 		gl.glVertex2i(0, this.getHeight());
-		
+
 		gl.glColor3f(0, 0, 0);
-		
-		
+
 		gl.glEnd();
-		
+
 		int offsetX = 0;
-		
-		for(int i = 0; i < 27; i++){
-			offsetX = ((i*20)-counter%20)*2;
-			System.out.println(offsetX);
+
+		for (int i = 0; i < 27; i++) {
+			offsetX = ((i * 20) - counter % 20) * 2;
+			// System.out.println(offsetX);
 			drawGroundLine(gl, offsetX, yo);
 		}
 	}
-	
+
 	private void drawGroundLine(GL2 gl, int dx, int yo) {
 		gl.glBegin(GL2.GL_QUADS);
-		
+
 		gl.glColor3f(1.0f, 1.0f, 0);
 		gl.glVertex2i(dx + 30, yo);
 		gl.glVertex2i(dx + (-20), this.getHeight());
@@ -232,6 +254,53 @@ public class View implements GLEventListener {
 	public Component getComponent() {
 		// TODO Auto-generated method stub
 		return (Component) canvas;
+	}
+
+	private void drawDino(GL2 gl) {
+		Point pos = saur.getPos();
+		gl.glBegin(GL2.GL_POLYGON);
+		gl.glColor3d(0.403922, 0.560784, 0);
+
+		gl.glVertex2d(pos.getX(), pos.getY());
+		gl.glVertex2d(pos.getX(), pos.getY() + 40);
+		gl.glVertex2d(pos.getX() + 50, pos.getY() + 40);
+		gl.glVertex2d(pos.getX() + 50, pos.getY());
+
+		gl.glEnd();
+
+	}
+
+	int jumpModifier = -10;
+
+	public void animateJump(GL2 gl) {
+
+		if (saur.getY() < 190) {
+			System.out.println("down");
+			jumpModifier *= -1;
+		}
+		//
+		if (saur.getY() > 360) {
+			System.out.println("reset");
+			saur.setInJumpState(false);
+			saur.setY(360);
+			jumpModifier = -10;
+		}
+
+		System.out.println("woah");
+		saur.setY(saur.getY() + jumpModifier);
+
+		// if (player.getY() + player.getHeight() > jumpHeightLimit)
+		// jumpModifier *= -1;
+		//
+		// if (player.getY() + 2 * jumpModifier < 0.0f) {
+		// player.setJumpingState(false);
+		// player.setY(0.0f);
+		// jumpModifier *= -1;
+		// }
+
+		// player.setY(player.getY() + jumpModifier);
+		// System.out.println(player.getY());
+
 	}
 
 }
