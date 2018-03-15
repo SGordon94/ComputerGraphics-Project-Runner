@@ -1,4 +1,4 @@
-# //TODO: {name} Runner
+# // TODO: {name} Runner
 
 A game inspired by Google Chrome's T-rex Runner using Java and OpenGL.  
 Semester project for Computer Graphics 4053/5053
