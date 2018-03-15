@@ -63,7 +63,7 @@ public class View implements GLEventListener {
 		// Initialize rendering
 		canvas.addGLEventListener(this);
 		animator = new FPSAnimator(canvas, DEFAULT_FRAMES_PER_SECOND);
-		// animator.start();
+		 animator.start();
 
 		// keyHandler = new KeyHandler(this);
 		mouseHandler = new MouseHandler(this);
@@ -85,11 +85,8 @@ public class View implements GLEventListener {
 
 	@Override
 	public void display(GLAutoDrawable drawable) {
-		// TODO Auto-generated method stub
-
 		update();
 		render(drawable);
-
 	}
 
 	@Override
@@ -137,6 +134,8 @@ public class View implements GLEventListener {
 
 		gl.glMatrixMode(GL2.GL_PROJECTION);
 		gl.glLoadIdentity();
+		// upper left corner will be (0,0)
+		// bottom right corner will be (1000,450)
 		glu.gluOrtho2D(0.0f, 1000.0f, 450.0f, 0.0f);
 	}
 	// **********************************************************************
@@ -154,12 +153,9 @@ public class View implements GLEventListener {
 		
 		setProjection(gl);
 		
-		//drawBackground(gl);
+		drawBackground(gl);
 		drawGround(gl);
-		drawAxes(gl);
 		drawCursorCoordinates(gl); // Draw some text
-		
-		
 		
 	}
 
@@ -179,19 +175,6 @@ public class View implements GLEventListener {
 		renderer.draw(s, 2, 2);
 		renderer.endRendering();
 	}
-
-	private void drawAxes(GL2 gl) {
-		gl.glBegin(GL.GL_LINES);
-
-		gl.glColor3f(0.25f, 0.25f, 0.25f);
-		gl.glVertex2d(-10.0, 0.0);
-		gl.glVertex2d(10.0, 0.0);
-
-		gl.glVertex2d(0.0, -10.0);
-		gl.glVertex2d(0.0, 10.0);
-
-		gl.glEnd();
-	}
 	
 	private void drawBackground(GL2 gl){
 		gl.glBegin(GL2.GL_POLYGON);
@@ -203,26 +186,43 @@ public class View implements GLEventListener {
 		gl.glVertex2f(this.getWidth(), this.getHeight());
 		gl.glVertex2f(0, this.getHeight());
 		
-		gl.glColor3f(0, 0, 0);
-		
 		gl.glEnd();
 	}
 	
 	private void drawGround(GL2 gl) {
 		gl.glBegin(GL2.GL_POLYGON);
 		
+		int yo = 2*(this.getHeight()/3); // 2/3 the height
+		
 		gl.glColor3f(1.0f, 0.0f, 1.0f);
-		
-		int yo = this.getHeight()/2;
-		
 		gl.glVertex2i(0, yo);
-		gl.glVertex2i(this.getWidth(), yo);
-		gl.glVertex2i(this.getWidth(), this.getHeight());
+		gl.glVertex2i(this.getWidth(), yo);		
+		gl.glVertex2i(this.getWidth(), this.getHeight());		
 		gl.glVertex2i(0, this.getHeight());
 		
 		gl.glColor3f(0, 0, 0);
 		
 		
+		gl.glEnd();
+		
+		int offsetX = 0;
+		
+		for(int i = 0; i < 27; i++){
+			offsetX = ((i*20)-counter%20)*2;
+			System.out.println(offsetX);
+			drawGroundLine(gl, offsetX, yo);
+		}
+	}
+	
+	private void drawGroundLine(GL2 gl, int dx, int yo) {
+		gl.glBegin(GL2.GL_QUADS);
+		
+		gl.glColor3f(1.0f, 1.0f, 0);
+		gl.glVertex2i(dx + 30, yo);
+		gl.glVertex2i(dx + (-20), this.getHeight());
+		gl.glVertex2i(dx + (-10), this.getHeight());
+		gl.glVertex2i(dx + 40, yo);
+
 		gl.glEnd();
 	}
 
