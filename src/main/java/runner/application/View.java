@@ -5,12 +5,16 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
+
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
@@ -70,7 +74,22 @@ public class View implements GLEventListener {
 		animator.start();
 
 		new KeyHandler(this);
+		pointsList = new ArrayList<Point>();
+		rand = new Random();
 		// new MouseHandler(this);
+
+		addCloud();
+		try {
+			for (;;) {
+
+				TimeUnit.SECONDS.sleep(rand.nextInt(5) + 1);
+				addCloud();
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	// **********************************************************************
@@ -177,6 +196,15 @@ public class View implements GLEventListener {
 		drawCursorCoordinates(gl); // Draw some text
 		drawDino(gl);
 
+		for (Point pos : pointsList) {
+			if (pos.getX() <= 0) {
+				pointsList.remove(pos);
+				break;
+			}
+			pos.setLocation(pos.getX() - 2, pos.getY());
+			drawCloud(gl, pos);
+		}
+
 		if (saur.getInJumpState())
 			animateJump(gl);
 
@@ -202,7 +230,7 @@ public class View implements GLEventListener {
 	private void drawBackground(GL2 gl) {
 		gl.glBegin(GL2.GL_POLYGON);
 
-		gl.glColor3f(1.0f, 0.0f, 0.0f);
+		gl.glColor3d(0.0470588, 0.192157, 0.4);
 
 		gl.glVertex2f(0, 0);
 		gl.glVertex2f(this.getWidth(), 0);
@@ -217,7 +245,7 @@ public class View implements GLEventListener {
 
 		int yo = 2 * (this.getHeight() / 3); // 2/3 the height
 
-		gl.glColor3f(1.0f, 0.0f, 1.0f);
+		gl.glColor3d(0.392157, 0.247059, 0.0470588f);
 		gl.glVertex2i(0, yo);
 		gl.glVertex2i(this.getWidth(), yo);
 		gl.glVertex2i(this.getWidth(), this.getHeight());
@@ -239,7 +267,7 @@ public class View implements GLEventListener {
 	private void drawGroundLine(GL2 gl, int dx, int yo) {
 		gl.glBegin(GL2.GL_QUADS);
 
-		gl.glColor3f(1.0f, 1.0f, 0);
+		gl.glColor3d(0.278431, 0.392157, 0.0470588);
 		gl.glVertex2i(dx + 30, yo);
 		gl.glVertex2i(dx + (-20), this.getHeight());
 		gl.glVertex2i(dx + (-10), this.getHeight());
@@ -270,32 +298,65 @@ public class View implements GLEventListener {
 
 	}
 
+	public ArrayList<Point> pointsList;
+	public Random rand;
 	int jumpModifier = -10;
 	// Used if spacebar is let go early
 	int shortJump = 0;
 
+	public void addCloud() {
+		int x = 1020;
+		int y = rand.nextInt(300 + 1 - 20) + 20;
+
+		pointsList.add(new Point(x, y));
+	}
+
+	public void drawCloud(GL2 gl, Point pos) {
+		gl.glBegin(GL2.GL_POLYGON);
+		gl.glColor3d(0.662745, 0.662745, 0.662745);
+
+		// gl.glVertex2d(pos.getX(), pos.getY());
+		// gl.glVertex2d(pos.getX(), pos.getY() + 10);
+		// gl.glVertex2d(pos.getX() + 10, pos.getY() + 10);
+		// gl.glVertex2d(pos.getX() + 10, pos.getY());
+
+		drawEllipse(gl, (int) pos.getX() + 28, (int) pos.getY() - 5);
+		drawEllipse(gl, (int) pos.getX() + 10, (int) pos.getY() + 5);
+		drawEllipse(gl, (int) pos.getX() + 13, (int) pos.getY() - 13);
+		drawEllipse(gl, (int) pos.getX(), (int) pos.getY());
+
+		gl.glEnd();
+	}
+
+	public void drawEllipse(GL2 gl, int xX, int yY) {
+		for (int i = 0; i < 32; i++) {
+			double angle = (2 * Math.PI * i) / 32;
+			double x = Math.cos(angle) * 20;
+			double y = Math.sin(angle) * 10;
+			gl.glVertex2d(xX + x, yY + y);
+		}
+	}
+
 	public void animateJump(GL2 gl) {
-		
-		if(shortJump == 1 && jumpModifier < 0){
+
+		if (shortJump == 1 && jumpModifier < 0) {
 			System.out.println("shorty");
 			jumpModifier *= -1;
 			shortJump = 2;
 		}
-		
+
 		if (saur.getY() < 190 && jumpModifier < 0) {
-				System.out.println("down");
-				jumpModifier *= -1;
+			System.out.println("down");
+			jumpModifier *= -1;
 		}
-		
+
 		if (saur.getY() > 360) {
-			System.out.println("reset");
 			saur.setInJumpState(false);
 			shortJump = 0;
 			saur.setY(360);
 			jumpModifier = -10;
 		}
 
-		//System.out.println("woah");
 		saur.setY(saur.getY() + jumpModifier);
 
 		// if (player.getY() + player.getHeight() > jumpHeightLimit)
