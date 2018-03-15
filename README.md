@@ -1,4 +1,4 @@
-# //TODO: {name} Runner
+# // TODO: {name} Runner
 
 A game inspired by Google Chrome's T-rex Runner using Java and OpenGL.  
 Semester project for Computer Graphics 4053/5053
@@ -12,10 +12,15 @@ Semester project for Computer Graphics 4053/5053
 working then maybe that is why.~~
 
 via gradle
-
-
 ``` bash
 $ gradle installDist
+```  
+in eclipse  
+```
+1. Right click on gradle task in Eclipse/Gradle Tasks plugin window
+2. Open tab 'Java Home'
+3. Set Java home to C:\Program Files\Java\jdk1.8.0_131\jre
+  *directory may vary depending on the jdk version*
 ```
 
 ## Usage
