@@ -40,6 +40,14 @@ public class View implements GLEventListener {
 	// dino model
 	private Dino saur;
 
+	public Dino getDino() {
+		return saur;
+	}
+
+	public void setDino(Dino saur) {
+		this.saur = saur;
+	}
+
 	private int counter = 0; // Just an animation counter
 	private int w; // Canvas width
 	private int h; // Canvas height
@@ -68,7 +76,7 @@ public class View implements GLEventListener {
 		// Initialize rendering
 		canvas.addGLEventListener(this);
 		animator = new FPSAnimator(canvas, DEFAULT_FRAMES_PER_SECOND);
-		// animator.start();
+		animator.start();
 
 		keyHandler = new KeyHandler(this);
 		mouseHandler = new MouseHandler(this);
@@ -94,6 +102,8 @@ public class View implements GLEventListener {
 
 		update();
 		render(drawable);
+		// if (player.isJumping())
+		// animateJump(gl);
 
 	}
 
@@ -250,5 +260,21 @@ public class View implements GLEventListener {
 		gl.glEnd();
 
 	}
+	
+	// public void animateJump(GL2 gl) {
+	// if (player.getY() + player.getHeight() > jumpHeightLimit)
+	// jumpModifier *= -1;
+	// if (player.getY() + 2 * jumpModifier < 0.0f) {
+	// player.setJumpingState(false);
+	// player.setY(0.0f);
+	// jumpModifier *= -1;
+	// }
+	// player.setY(player.getY() + jumpModifier);
+	// System.out.println(player.getY());
+	//
+	// if(saur.getY() > 30) {
+	// jump
+	// }
+	// }
 
 }

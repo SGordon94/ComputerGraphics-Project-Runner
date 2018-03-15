@@ -30,7 +30,7 @@ public class KeyHandler extends KeyAdapter {
 	// function to handle key presses
 	public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-			System.out.println("test");
+			this.view.getDino().jump();
 		}
 	}
 
