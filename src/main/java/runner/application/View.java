@@ -271,22 +271,31 @@ public class View implements GLEventListener {
 	}
 
 	int jumpModifier = -10;
+	// Used if spacebar is let go early
+	int shortJump = 0;
 
 	public void animateJump(GL2 gl) {
-
-		if (saur.getY() < 190) {
-			System.out.println("down");
+		
+		if(shortJump == 1 && jumpModifier < 0){
+			System.out.println("shorty");
 			jumpModifier *= -1;
+			shortJump = 2;
 		}
-		//
+		
+		if (saur.getY() < 190 && jumpModifier < 0) {
+				System.out.println("down");
+				jumpModifier *= -1;
+		}
+		
 		if (saur.getY() > 360) {
 			System.out.println("reset");
 			saur.setInJumpState(false);
+			shortJump = 0;
 			saur.setY(360);
 			jumpModifier = -10;
 		}
 
-		System.out.println("woah");
+		//System.out.println("woah");
 		saur.setY(saur.getY() + jumpModifier);
 
 		// if (player.getY() + player.getHeight() > jumpHeightLimit)
