@@ -1,67 +1,72 @@
 package runner.application;
 
+import java.awt.geom.Point2D;
+
 public class Cloud {
 
-	private int x;
-	private int y;
-	private int speed;
-	private int width;
-	private int height;
+	// **********************************************************************
+	// Private Members
+	// **********************************************************************
+	Point2D.Double position;
+	Vector2D velocity;
 
-	public Cloud(int x, int y, int speed, int width, int height) {
-		this.x = x;
-		this.y = y;
-		this.speed = speed;
-		this.width = width;
-		this.height = height;
+	// idk
+	// private int width;
+	// private int height;
+
+	private Point2D.Double[] cloudPoints;
+
+	// **********************************************************************
+	// Constructors and Finalizer
+	// **********************************************************************
+	public Cloud(Point2D.Double position, Vector2D velocity, Point2D.Double[] cloudPoints) {
+		this.position = position;
+		this.velocity = velocity;
+		this.cloudPoints = cloudPoints;
 	}
 
-	public int getX() {
-		return x;
+	// **********************************************************************
+	// Getters and Setters
+	// **********************************************************************
+
+	public Point2D.Double[] getCloudPoints() {
+		return cloudPoints;
 	}
 
-	public void setX(int x) {
-		this.x = x;
+	public void setCloudPoints(Point2D.Double[] cloudPoints) {
+		this.cloudPoints = cloudPoints;
 	}
 
-	public int getY() {
-		return y;
+	public void setX(double x) {
+
+		double initX = this.position.x;
+		double deltaX = x - initX;
+
+		// apply delta to all x's
+		for (Point2D.Double point : cloudPoints) {
+			point.setLocation(point.x + deltaX, point.y);
+		}
+
+		// update position
+		this.position.setLocation(x, this.position.getY());
 	}
 
-	public void setY(int y) {
-		this.y = y;
+	// **********************************************************************
+	// movement methods
+	// **********************************************************************
+	public void addVector(Vector2D v) {
+		// System.out.println(this.velocity.toString());
+		// add vector to all cloud points
+		for (Point2D.Double point : cloudPoints) {
+			point.setLocation(point.getX() + v.getX(), point.getY() + v.getY());
+		}
+
+		// also update origin
+		this.position.setLocation(this.position.getX() + v.getX(), this.position.getY() + v.getY());
 	}
 
-	public int getSpeed() {
-		return speed;
-	}
-
-	public void setSpeed(int speed) {
-		this.speed = speed;
-	}
-
-	public int getWidth() {
-		return width;
-	}
-
-	public void setWidth(int width) {
-		this.width = width;
-	}
-
-	public int getHeight() {
-		return height;
-	}
-
-	public void setHeight(int height) {
-		this.height = height;
-	}
-
-	public int getXOffset() {
-		return x + width;
-	}
-
-	public int getYOffset() {
-		return y + height;
+	public void moveCloud() {
+		this.addVector(this.velocity);
 	}
 
 }

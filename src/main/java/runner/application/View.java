@@ -2,17 +2,18 @@ package runner.application;
 
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
+
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
@@ -61,7 +62,6 @@ public class View implements GLEventListener {
 
 	public View(GLJPanel canvas) {
 
-		// this.saur = new Dino(200, 360, 60, 60);
 		// init dino model info
 		// set position
 		Point2D.Double position = new Point2D.Double(200.0, 300.0);
@@ -83,12 +83,13 @@ public class View implements GLEventListener {
 		animator.start();
 
 		new KeyHandler(this);
-		// pointsList = new ArrayList<Point>();
+
 		this.cloudList = new ArrayList<Cloud>();
 		rand = new Random();
 		// new MouseHandler(this);
 
 		addCloud();
+
 		try {
 			for (;;) {
 
@@ -229,17 +230,19 @@ public class View implements GLEventListener {
 		// break;
 		// }
 		// pos.setLocation(pos.getX() - 2, pos.getY());
-		// drawCloud(gl, pos);
+
+		drawCloud(gl);
 		// }
 
 		for (Cloud cloud : cloudList) {
-			if (cloud.getX() <= 0) {
-				cloudList.remove(cloud);
-				break;
-			}
-
-			cloud.setX(cloud.getX() - cloud.getSpeed());
-			drawCloud(gl, cloud);
+			// if (cloud.getX() <= 0) {
+			// cloudList.remove(cloud);
+			// break;
+			// }
+			//
+			// cloud.setX(cloud.getX() - cloud.getSpeed());
+			cloud.moveCloud();
+			// cloud.addVector(new Vector2D(-1, 0));
 		}
 
 		// TODO: polish jump
@@ -327,6 +330,7 @@ public class View implements GLEventListener {
 
 	private void drawDino(GL2 gl) {
 
+		// TODO: make this a dino
 		gl.glBegin(GL2.GL_POLYGON);
 
 		gl.glColor3d(0.403922, 0.560784, 0);
@@ -346,39 +350,51 @@ public class View implements GLEventListener {
 	int shortJump = 0;
 
 	public void addCloud() {
-		int x = 1020;
-		int y = rand.nextInt(300 + 1 - 20) + 20;
-		// pointsList.add(new Point(x, y));
-		cloudList.add(new Cloud(x, y, rand.nextInt(5) + 1, 38, 28));
+		Random rand = new Random();
+		double x = 1020.0;
+		double y = (double) (rand.nextInt(300 + 1 - 20) + 20);
+
+		Point2D.Double position = new Point2D.Double(x, y);
+		Vector2D velocity = new Vector2D(-(rand.nextInt(5) + 1), 0);
+		Point2D.Double[] cloudPoints = generatePolygon(position, 32, 30, 20);
+		cloudList.add(new Cloud(position, velocity, cloudPoints));
 	}
 
 	// public void drawCloud(GL2 gl, Point pos) {
-	public void drawCloud(GL2 gl, Cloud pos) {
-		gl.glBegin(GL2.GL_POLYGON);
+	public void drawCloud(GL2 gl) {
 
-		gl.glColor3d(0.662745, 0.662745, 0.662745);
+		for (Cloud cloud : cloudList) {
 
-		// gl.glVertex2d(pos.getX(), pos.getY());
-		// gl.glVertex2d(pos.getX(), pos.getY() + 10);
-		// gl.glVertex2d(pos.getX() + 10, pos.getY() + 10);
-		// gl.glVertex2d(pos.getX() + 10, pos.getY());
+			gl.glBegin(GL2.GL_POLYGON);
 
-		drawEllipse(gl, (int) pos.getX() + 28, (int) pos.getY() - 5);
-		drawEllipse(gl, (int) pos.getX() + 10, (int) pos.getY() + 5);
-		drawEllipse(gl, (int) pos.getX() + 13, (int) pos.getY() - 13);
-		drawEllipse(gl, (int) pos.getX(), (int) pos.getY());
+			gl.glColor3d(0.662745, 0.662745, 0.662745);
+			for (Point2D.Double point : cloud.getCloudPoints()) {
+				gl.glVertex2d(point.getX(), point.getY());
+			}
 
-		gl.glEnd();
-	}
-
-	public void drawEllipse(GL2 gl, int xX, int yY) {
-		for (int i = 0; i < 32; i++) {
-			double angle = (2 * Math.PI * i) / 32;
-			double x = Math.cos(angle) * 20;
-			double y = Math.sin(angle) * 10;
-			gl.glVertex2d(xX + x, yY + y);
+			gl.glEnd();
 		}
+
+		// // gl.glVertex2d(pos.getX(), pos.getY());
+		// // gl.glVertex2d(pos.getX(), pos.getY() + 10);
+		// // gl.glVertex2d(pos.getX() + 10, pos.getY() + 10);
+		// // gl.glVertex2d(pos.getX() + 10, pos.getY());
+		//
+		// drawEllipse(gl, (int) pos.getX() + 28, (int) pos.getY() - 5);
+		// drawEllipse(gl, (int) pos.getX() + 10, (int) pos.getY() + 5);
+		// drawEllipse(gl, (int) pos.getX() + 13, (int) pos.getY() - 13);
+		// drawEllipse(gl, (int) pos.getX(), (int) pos.getY());
+
 	}
+
+	// public void drawEllipse(GL2 gl, int xX, int yY) {
+	// for (int i = 0; i < 32; i++) {
+	// double angle = (2 * Math.PI * i) / 32;
+	// double x = Math.cos(angle) * 20;
+	// double y = Math.sin(angle) * 10;
+	// gl.glVertex2d(xX + x, yY + y);
+	// }
+	// }
 
 	public void animateJump(GL2 gl) {
 		if (shortJump == 1 && jumpModifier < 0) {
@@ -401,22 +417,23 @@ public class View implements GLEventListener {
 
 		this.dino.setY(this.dino.getY() + jumpModifier);
 
-		try {
-			// collision bitch
-			for (Cloud cloud : cloudList) {
-				boolean isAbove = (this.dino.getY() < cloud.getY() + 50);
-				boolean isBetweenL = (this.dino.getX() < cloud.getX());
-				boolean isBetweenR = (this.dino.getX() + this.dino.getWidth() > cloud.getXOffset());
-
-				if (isAbove && isBetweenL && isBetweenR) {
-					cloudList.remove(cloud);
-					// System.out.println("no");
-				}
-
-			}
-		} catch (Exception e) {
-			// lol
-		}
+		// try {
+		// // collision bitch
+		// for (Cloud cloud : cloudList) {
+		// boolean isAbove = (this.dino.getY() < cloud.getY() + 50);
+		// boolean isBetweenL = (this.dino.getX() < cloud.getX());
+		// boolean isBetweenR = (this.dino.getX() + this.dino.getWidth() >
+		// cloud.getXOffset());
+		//
+		// if (isAbove && isBetweenL && isBetweenR) {
+		// cloudList.remove(cloud);
+		// // System.out.println("no");
+		// }
+		//
+		// }
+		// } catch (Exception e) {
+		// // lol
+		// }
 
 		// collision
 
