@@ -37,7 +37,8 @@ public class View implements GLEventListener {
 	private final GLJPanel canvas;
 
 	// dino model
-	private Dino saur;
+	// private Dino saur;
+	private Dino dino;
 
 	private int counter = 0; // Just an animation counter
 	private int w; // Canvas width
@@ -60,7 +61,14 @@ public class View implements GLEventListener {
 
 	public View(GLJPanel canvas) {
 
-		this.saur = new Dino(200, 360, 60, 60);
+		// this.saur = new Dino(200, 360, 60, 60);
+		// init dino model info
+		// set position
+		Point2D.Double position = new Point2D.Double(200.0, 300.0);
+		// TODO: make this not a simple polygon
+		// generate polygon points
+		Point2D.Double[] polygonPoints = generatePolygon(position, 6, 50, 50);
+		this.dino = new Dino(position, polygonPoints);
 
 		this.canvas = canvas;
 
@@ -92,6 +100,23 @@ public class View implements GLEventListener {
 			e.printStackTrace();
 		}
 
+	}
+
+	private Point2D.Double[] generatePolygon(Point2D.Double center, int sides, int w, int h) {
+		Point2D.Double[] polygonPoints = new Point2D.Double[sides];
+
+		// generate points based off circle method
+		for (int i = 0; i < sides; i++) {
+			double angle = (2 * Math.PI * i) / sides;
+
+			double x = Math.cos(angle) * w;
+			double y = Math.sin(angle) * h;
+
+			// add points to array
+			polygonPoints[i] = new Point2D.Double(x + center.getX(), y + center.getY());
+		}
+
+		return polygonPoints;
 	}
 
 	// **********************************************************************
@@ -158,11 +183,11 @@ public class View implements GLEventListener {
 	}
 
 	public Dino getDino() {
-		return saur;
+		return dino;
 	}
 
 	public void setDino(Dino saur) {
-		this.saur = saur;
+		this.dino = saur;
 	}
 
 	// **********************************************************************
@@ -217,7 +242,8 @@ public class View implements GLEventListener {
 			drawCloud(gl, cloud);
 		}
 
-		if (saur.getInJumpState())
+		// TODO: polish jump
+		if (dino.getInJumpState())
 			animateJump(gl);
 
 	}
@@ -300,14 +326,14 @@ public class View implements GLEventListener {
 	}
 
 	private void drawDino(GL2 gl) {
-		Point pos = saur.getPos();
+
 		gl.glBegin(GL2.GL_POLYGON);
+
 		gl.glColor3d(0.403922, 0.560784, 0);
 
-		gl.glVertex2d(pos.getX(), pos.getY());
-		gl.glVertex2d(pos.getX(), pos.getY() + saur.getHeight());
-		gl.glVertex2d(pos.getX() + saur.getWidth(), pos.getY() + saur.getHeight());
-		gl.glVertex2d(pos.getX() + saur.getWidth(), pos.getY());
+		for (Point2D.Double point : dino.getPoints()) {
+			gl.glVertex2d(point.getX(), point.getY());
+		}
 
 		gl.glEnd();
 
@@ -355,33 +381,32 @@ public class View implements GLEventListener {
 	}
 
 	public void animateJump(GL2 gl) {
-
 		if (shortJump == 1 && jumpModifier < 0) {
 			// System.out.println("shorty");
 			jumpModifier *= -1;
 			shortJump = 2;
 		}
 
-		if (saur.getY() < 190 && jumpModifier < 0) {
+		if (this.dino.getY() < 190 && jumpModifier < 0) {
 			// System.out.println("down");
 			jumpModifier *= -1;
 		}
 
-		if (saur.getY() > 360) {
-			saur.setInJumpState(false);
+		if (this.dino.getY() > 360) {
+			this.dino.setInJumpState(false);
 			shortJump = 0;
-			saur.setY(360);
+			this.dino.setY(360);
 			jumpModifier = -10;
 		}
 
-		saur.setY(saur.getY() + jumpModifier);
+		this.dino.setY(this.dino.getY() + jumpModifier);
 
 		try {
 			// collision bitch
 			for (Cloud cloud : cloudList) {
-				boolean isAbove = (saur.getY() < cloud.getY() + 50);
-				boolean isBetweenL = (saur.getX() < cloud.getX());
-				boolean isBetweenR = (saur.getX() + saur.getWidth() > cloud.getXOffset());
+				boolean isAbove = (this.dino.getY() < cloud.getY() + 50);
+				boolean isBetweenL = (this.dino.getX() < cloud.getX());
+				boolean isBetweenR = (this.dino.getX() + this.dino.getWidth() > cloud.getXOffset());
 
 				if (isAbove && isBetweenL && isBetweenR) {
 					cloudList.remove(cloud);
