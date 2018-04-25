@@ -202,7 +202,8 @@ public class View implements GLEventListener {
 		gl.glLoadIdentity();
 		// upper left corner will be (0,0)
 		// bottom right corner will be (1000,450)
-		glu.gluOrtho2D(0.0f, 1000.0f, 450.0f, 0.0f);
+		glu.gluOrtho2D(0.0f, 1000.0f, 0.0f, 450.0f);
+
 	}
 	// **********************************************************************
 	// Private Methods (Rendering)

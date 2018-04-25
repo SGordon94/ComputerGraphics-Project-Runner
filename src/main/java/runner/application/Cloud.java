@@ -11,8 +11,6 @@ public class Cloud {
 	Vector2D velocity;
 
 	// idk
-	// private int width;
-	// private int height;
 
 	private Point2D.Double[] cloudPoints;
 
@@ -55,7 +53,6 @@ public class Cloud {
 	// movement methods
 	// **********************************************************************
 	public void addVector(Vector2D v) {
-		// System.out.println(this.velocity.toString());
 		// add vector to all cloud points
 		for (Point2D.Double point : cloudPoints) {
 			point.setLocation(point.getX() + v.getX(), point.getY() + v.getY());
