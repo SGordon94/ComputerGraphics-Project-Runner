@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -222,39 +223,22 @@ public class View implements GLEventListener {
 
 		drawBackground(gl);
 		drawGround(gl);
-		drawCursorCoordinates(gl); // Draw some text
+		drawCursorCoordinates(gl);
+
+		// draw dino
 		drawDino(gl);
 
-		// for (Point pos : pointsList) {
-		// if (pos.getX() <= 0) {
-		// pointsList.remove(pos);
-		// break;
-		// }
-		// pos.setLocation(pos.getX() - 2, pos.getY());
+		// draw clouds
+		drawClouds(gl);
 
-		drawCloud(gl);
-		// }
-
-		for (Cloud cloud : cloudList) {
-			// if (cloud.getX() <= 0) {
-			// cloudList.remove(cloud);
-			// break;
-			// }
-			//
-			// cloud.setX(cloud.getX() - cloud.getSpeed());
-			cloud.moveCloud();
-
-			if (dino.collides(cloud)) {
-				cloudList.remove(cloud);
-			}
-
-			// cloud.addVector(new Vector2D(-1, 0));
-		}
+		// move cloudes
+		moveClouds(gl);
 
 		// TODO: polish jump
-		if (dino.getInJumpState()) {
+		if (dino.getInJumpState())
+
+		{
 			animateJump(gl);
-			// System.out.println(dino.getPosition().toString());
 		}
 
 	}
@@ -369,7 +353,7 @@ public class View implements GLEventListener {
 	}
 
 	// public void drawCloud(GL2 gl, Point pos) {
-	public void drawCloud(GL2 gl) {
+	public void drawClouds(GL2 gl) {
 
 		for (Cloud cloud : cloudList) {
 
@@ -392,7 +376,25 @@ public class View implements GLEventListener {
 		// drawEllipse(gl, (int) pos.getX() + 10, (int) pos.getY() + 5);
 		// drawEllipse(gl, (int) pos.getX() + 13, (int) pos.getY() - 13);
 		// drawEllipse(gl, (int) pos.getX(), (int) pos.getY());
+	}
 
+	public void moveClouds(GL2 gl) {
+		// using iterator instead of looping
+		// through the array list of cloud object
+		Iterator<Cloud> iterator = cloudList.iterator();
+		while (iterator.hasNext()) {
+
+			Cloud cloud = iterator.next();
+
+			// move cloud by adding velocity vector to position
+			cloud.moveCloud();
+
+			/* TODO: this is the collision test it works.... */
+			if (dino.collides(cloud)) {
+				iterator.remove();
+			}
+
+		}
 	}
 
 	// public void drawEllipse(GL2 gl, int xX, int yY) {
