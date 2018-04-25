@@ -111,20 +111,8 @@ public class Dino {
 		this.setInJumpState(true);
 	}
 
-	public boolean isPointOnLine(Point2D.Double a, Point2D.Double b, Point2D.Double p) {
-		// shift points / vector
-		Point2D.Double shiftB = new Point2D.Double(b.getX() - a.getX(), b.getY() - a.getY());
-		Point2D.Double shiftP = new Point2D.Double(p.getX() - a.getX(), p.getY() - a.getY());
-
-		// find cross product
-		double crossProduct = (shiftB.getX() * shiftP.getY() - shiftP.getX() * shiftB.getY());
-
-		// if crossproduct < 0 then given point is on segment
-		return Math.abs(crossProduct) < 0.000001;
-	}
-
-	// check what side a point c is on given a line segment ab
-	private int sideTest(Point2D.Double a, Point2D.Double b, Point2D.Double p) {
+	//
+	public int sideTest(Point2D.Double a, Point2D.Double b, Point2D.Double p) {
 		// cross product
 		double result = (b.getX() - a.getX()) * (p.getY() - a.getY()) - (b.getY() - a.getY()) * (p.getX() - a.getX());
 
@@ -137,6 +125,18 @@ public class Dino {
 		}
 		// Left
 		return -1;
+	}
+
+	public boolean isPointOnLine(Point2D.Double a, Point2D.Double b, Point2D.Double p) {
+		// shift points / vector
+		Point2D.Double shiftB = new Point2D.Double(b.getX() - a.getX(), b.getY() - a.getY());
+		Point2D.Double shiftP = new Point2D.Double(p.getX() - a.getX(), p.getY() - a.getY());
+
+		// find cross product
+		double crossProduct = (shiftB.getX() * shiftP.getY() - shiftP.getX() * shiftB.getY());
+
+		// if crossproduct < 0 then given point is on segment
+		return Math.abs(crossProduct) < 0.000001;
 	}
 
 	public boolean lineIntersect(Point2D.Double a, Point2D.Double b, Point2D.Double c, Point2D.Double d) {
@@ -157,5 +157,27 @@ public class Dino {
 		boolean result = lineIntersect(a, b, c, d) && lineIntersect(c, d, a, b);
 
 		return result;
+	}
+
+	public boolean collides(Cloud cloud) {
+		Point2D.Double[] cloudPoints = cloud.getCloudPoints();
+
+		boolean collision = false;
+
+		for (int i = 0; i < points.length; i++) {
+			Point2D.Double a = points[i];
+			Point2D.Double b = points[(i + 1) % points.length];
+			// Point2D.Double b = points[(i + 1) % points.length];
+			for (int j = 0; j < cloudPoints.length; j++) {
+				Point2D.Double c = cloudPoints[j];
+				Point2D.Double d = cloudPoints[(j + 1) % cloudPoints.length];
+
+				if (doLinesIntersect(a, b, c, d)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }

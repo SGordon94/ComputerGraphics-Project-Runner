@@ -64,7 +64,7 @@ public class View implements GLEventListener {
 
 		// init dino model info
 		// set position
-		Point2D.Double position = new Point2D.Double(200.0, 300.0);
+		Point2D.Double position = new Point2D.Double(200.0, 100.0);
 		// TODO: make this not a simple polygon
 		// generate polygon points
 		Point2D.Double[] polygonPoints = generatePolygon(position, 6, 50, 50);
@@ -89,7 +89,7 @@ public class View implements GLEventListener {
 		// new MouseHandler(this);
 
 		addCloud();
-
+		//
 		try {
 			for (;;) {
 
@@ -243,12 +243,19 @@ public class View implements GLEventListener {
 			//
 			// cloud.setX(cloud.getX() - cloud.getSpeed());
 			cloud.moveCloud();
+
+			if (dino.collides(cloud)) {
+				cloudList.remove(cloud);
+			}
+
 			// cloud.addVector(new Vector2D(-1, 0));
 		}
 
 		// TODO: polish jump
-		if (dino.getInJumpState())
+		if (dino.getInJumpState()) {
 			animateJump(gl);
+			// System.out.println(dino.getPosition().toString());
+		}
 
 	}
 
