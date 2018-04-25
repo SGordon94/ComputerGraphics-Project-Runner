@@ -28,6 +28,7 @@ public class View implements GLEventListener {
 	public static final GLUT GLUT = new GLUT();
 	public static final Random RANDOM = new Random();
 	public static final int DEFAULT_FRAMES_PER_SECOND = 60;
+	public static final double FRAME_TIME_DELTA = 5.0 * 1.0/(double)DEFAULT_FRAMES_PER_SECOND;
 	private static final DecimalFormat FORMAT = new DecimalFormat("0.000");
 
 	// **********************************************************************
@@ -40,10 +41,19 @@ public class View implements GLEventListener {
 	// dino model
 	// private Dino saur;
 	private Dino dino;
+	// public ArrayList<Point> pointsList;
+	public Random rand;
+	//int jumpModifier = -10;
+	// Used if spacebar is let go early
+	//int shortJump = 0;
 
 	private int counter = 0; // Just an animation counter
+	private int jumpFrameLimit = 0;
+	private boolean spaceIsPressed = false;
 	private int w; // Canvas width
 	private int h; // Canvas height
+	private double floorLocY = 80.0;
+	private Vector2D gravity = new Vector2D(0.0, -15.0);
 
 	// private final KeyHandler keyHandler;
 	// private final MouseHandler mouseHandler;
@@ -64,10 +74,10 @@ public class View implements GLEventListener {
 
 		// init dino model info
 		// set position
-		Point2D.Double position = new Point2D.Double(200.0, 300.0);
+		Point2D.Double position = new Point2D.Double(200.0, floorLocY);
 		// TODO: make this not a simple polygon
 		// generate polygon points
-		Point2D.Double[] polygonPoints = generatePolygon(position, 6, 50, 50);
+		Point2D.Double[] polygonPoints = generatePolygon(position, Dino.DEFAULT_NUMBER_OF_SIDES, Dino.DEFAULT_HEIGHT, Dino.DEFAULT_HEIGHT);
 		this.dino = new Dino(position, polygonPoints);
 
 		this.canvas = canvas;
@@ -142,9 +152,6 @@ public class View implements GLEventListener {
 	public void display(GLAutoDrawable drawable) {
 		update();
 		render(drawable);
-		// if (player.isJumping())
-		// animateJump(gl);
-
 	}
 
 	@Override
@@ -162,6 +169,19 @@ public class View implements GLEventListener {
 
 	public int getHeight() {
 		return h;
+	}
+
+	public int getCounter() {
+		return counter;
+	}
+
+	public boolean isSpacePressed() {
+		if(spaceIsPressed) return true;
+		return false;
+	}
+
+	public void setSpacePressed(boolean state) {
+		spaceIsPressed = state;
 	}
 
 	public Point2D.Double getOrigin() {
@@ -191,6 +211,10 @@ public class View implements GLEventListener {
 		this.dino = saur;
 	}
 
+	public void setSuperJumpFrameLimit(int frameLimit) {
+		jumpFrameLimit = frameLimit;
+	}
+
 	// **********************************************************************
 	// Private Methods (Viewport)
 	// **********************************************************************
@@ -200,8 +224,8 @@ public class View implements GLEventListener {
 
 		gl.glMatrixMode(GL2.GL_PROJECTION);
 		gl.glLoadIdentity();
-		// upper left corner will be (0,0)
-		// bottom right corner will be (1000,450)
+		// bottom left corner will be (0,0)
+		// top right corner will be (1000,450)
 		glu.gluOrtho2D(0.0f, 1000.0f, 0.0f, 450.0f);
 
 	}
@@ -210,7 +234,31 @@ public class View implements GLEventListener {
 	// **********************************************************************
 
 	private void update() {
+		updateDino();
 		counter++; // Counters are useful, right?
+	}
+
+	private void updateDino() {
+		if(!spaceIsPressed) jumpFrameLimit = counter;
+		if(counter > jumpFrameLimit) { System.out.println("super jump ready"); dino.setJumpType(2); }
+		if(counter <= jumpFrameLimit) dino.setJumpType(1);
+		
+		//if jumping, update dino position and new polygon points
+		if(dino.isJumping()) {
+			double newYPosition = dino.getY() + FRAME_TIME_DELTA * dino.getJumpVelocity().getY(); //new_position = old_position + delta_time * current_velocity
+			double newYVelocity = dino.getJumpVelocity().getY()  + FRAME_TIME_DELTA * gravity.y; //new_velocity = old_velocity + delta_time * gravity
+			dino.setPosition(new Point2D.Double(dino.getX(), newYPosition));
+			dino.setJumpVelocity(new Vector2D(dino.getJumpVelocity().getX(), newYVelocity));
+			Point2D.Double[] polygonPoints = generatePolygon(dino.getPosition(), Dino.DEFAULT_NUMBER_OF_SIDES, Dino.DEFAULT_HEIGHT, Dino.DEFAULT_HEIGHT);
+			dino.setPoints(polygonPoints);
+		}
+		
+		if(dino.getPosition().y - dino.getHeight() < floorLocY) {
+			dino.setY(floorLocY);
+			Point2D.Double[] polygonPoints = generatePolygon(dino.getPosition(), Dino.DEFAULT_NUMBER_OF_SIDES, Dino.DEFAULT_HEIGHT, Dino.DEFAULT_HEIGHT);
+			dino.setPoints(polygonPoints);
+			dino.setInJumpState(false);
+		}
 	}
 
 	private void render(GLAutoDrawable drawable) {
@@ -247,9 +295,7 @@ public class View implements GLEventListener {
 		}
 
 		// TODO: polish jump
-		if (dino.getInJumpState())
-			animateJump(gl);
-
+		//if (dino.getInJumpState()) animateJump(gl);
 	}
 
 	// **********************************************************************
@@ -344,12 +390,6 @@ public class View implements GLEventListener {
 
 	}
 
-	// public ArrayList<Point> pointsList;
-	public Random rand;
-	int jumpModifier = -10;
-	// Used if spacebar is let go early
-	int shortJump = 0;
-
 	public void addCloud() {
 		Random rand = new Random();
 		double x = 1020.0;
@@ -397,59 +437,59 @@ public class View implements GLEventListener {
 	// }
 	// }
 
-	public void animateJump(GL2 gl) {
-		if (shortJump == 1 && jumpModifier < 0) {
-			// System.out.println("shorty");
-			jumpModifier *= -1;
-			shortJump = 2;
-		}
+	// public void animateJump(GL2 gl) {
+	// 	if (shortJump == 1 && jumpModifier < 0) {
+	// 		// System.out.println("shorty");
+	// 		jumpModifier *= -1;
+	// 		shortJump = 2;
+	// 	}
 
-		if (this.dino.getY() < 190 && jumpModifier < 0) {
-			// System.out.println("down");
-			jumpModifier *= -1;
-		}
+	// 	if (this.dino.getY() < 190 && jumpModifier < 0) {
+	// 		// System.out.println("down");
+	// 		jumpModifier *= -1;
+	// 	}
 
-		if (this.dino.getY() > 360) {
-			this.dino.setInJumpState(false);
-			shortJump = 0;
-			this.dino.setY(360);
-			jumpModifier = -10;
-		}
+	// 	if (this.dino.getY() > 360) {
+	// 		this.dino.setInJumpState(false);
+	// 		shortJump = 0;
+	// 		this.dino.setY(360);
+	// 		jumpModifier = -10;
+	// 	}
 
-		this.dino.setY(this.dino.getY() + jumpModifier);
+	// 	this.dino.setY(this.dino.getY() + jumpModifier);
 
-		// try {
-		// // collision bitch
-		// for (Cloud cloud : cloudList) {
-		// boolean isAbove = (this.dino.getY() < cloud.getY() + 50);
-		// boolean isBetweenL = (this.dino.getX() < cloud.getX());
-		// boolean isBetweenR = (this.dino.getX() + this.dino.getWidth() >
-		// cloud.getXOffset());
-		//
-		// if (isAbove && isBetweenL && isBetweenR) {
-		// cloudList.remove(cloud);
-		// // System.out.println("no");
-		// }
-		//
-		// }
-		// } catch (Exception e) {
-		// // lol
-		// }
+	// 	// try {
+	// 	// // collision bitch
+	// 	// for (Cloud cloud : cloudList) {
+	// 	// boolean isAbove = (this.dino.getY() < cloud.getY() + 50);
+	// 	// boolean isBetweenL = (this.dino.getX() < cloud.getX());
+	// 	// boolean isBetweenR = (this.dino.getX() + this.dino.getWidth() >
+	// 	// cloud.getXOffset());
+	// 	//
+	// 	// if (isAbove && isBetweenL && isBetweenR) {
+	// 	// cloudList.remove(cloud);
+	// 	// // System.out.println("no");
+	// 	// }
+	// 	//
+	// 	// }
+	// 	// } catch (Exception e) {
+	// 	// // lol
+	// 	// }
 
-		// collision
+	// 	// collision
 
-		// if (player.getY() + player.getHeight() > jumpHeightLimit)
-		// jumpModifier *= -1;
-		//
-		// if (player.getY() + 2 * jumpModifier < 0.0f) {
-		// player.setJumpingState(false);
-		// player.setY(0.0f);
-		// jumpModifier *= -1;
-		// }
+	// 	// if (player.getY() + player.getHeight() > jumpHeightLimit)
+	// 	// jumpModifier *= -1;
+	// 	//
+	// 	// if (player.getY() + 2 * jumpModifier < 0.0f) {
+	// 	// player.setJumpingState(false);
+	// 	// player.setY(0.0f);
+	// 	// jumpModifier *= -1;
+	// 	// }
 
-		// player.setY(player.getY() + jumpModifier);
-		// System.out.println(player.getY());
+	// 	// player.setY(player.getY() + jumpModifier);
+	// 	// System.out.println(player.getY());
 
-	}
+	// }
 
 }

@@ -85,7 +85,7 @@ group = "edu.ou.cs.cg"
 version = '1.1.0'
 
 applicationName = "project"
-mainClassName = "runner.application.RunnerLauncher"
+mainClassName = "runner.application.Application"
 applicationDefaultJvmArgs = ['-Xms128m', '-Xmx756m', '-noclassgc',\
  '-Dfile.encoding=utf-8', '-Dapple.laf.useScreenMenuBar=false',\
  '-Dapple.awt.showGrowBox=true', '-Dapple.awt.brushMetalLook=false',\

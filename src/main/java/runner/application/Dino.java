@@ -5,6 +5,14 @@ import java.awt.geom.Point2D;
 public class Dino {
 
 	// **********************************************************************
+	// Static Members
+	// **********************************************************************
+
+	final static int DEFAULT_NUMBER_OF_SIDES = 6;
+	final static int DEFAULT_WIDTH = 50;
+	final static int DEFAULT_HEIGHT = 50;
+
+	// **********************************************************************
 	// Private Members
 	// **********************************************************************
 	private int width;
@@ -17,8 +25,9 @@ public class Dino {
 	private Point2D.Double points[];
 
 	// TODO: jump
-	// private Vector2D.Double jumpVelocity;
+	private Vector2D jumpVelocity;
 	private boolean inJumpState;
+	private int currentJumpType; //0 - not jumping, 1 - normal jump, 2 - super jump
 
 	// **********************************************************************
 	// Constructors and Finalizer
@@ -27,13 +36,18 @@ public class Dino {
 		width = 60;
 		height = 60;
 		position = new Point2D.Double(0.0, 0.0);
-		inJumpState = false;
 		points = null;
+		inJumpState = false;
+		currentJumpType = 0;
+		jumpVelocity = new Vector2D(0.0, 0.0);
 	}
 
 	public Dino(Point2D.Double position, Point2D.Double points[]) {
 		this.position = position;
 		this.points = points;
+		inJumpState = false;
+		currentJumpType = 0;
+		jumpVelocity = new Vector2D(0.0, 0.0);
 	}
 
 	// **********************************************************************
@@ -96,19 +110,45 @@ public class Dino {
 		this.height = height;
 	}
 
-	public boolean getInJumpState() {
-		return inJumpState;
+	public Vector2D getJumpVelocity() {
+		return jumpVelocity;
+	}
+
+	public void setJumpVelocity(Vector2D newVelocity) {
+		this.jumpVelocity = newVelocity;
+	}
+
+	public boolean isJumping() {
+		if(inJumpState) return true;
+		return false;
 	}
 
 	public void setInJumpState(boolean inJumpState) {
 		this.inJumpState = inJumpState;
 	}
 
+	public void setJumpType(int type) {
+		currentJumpType = type;
+	}
+
 	// **********************************************************************
 	// Public Methods
 	// **********************************************************************
 	public void jump() {
-		this.setInJumpState(true);
+		switch(currentJumpType) {
+			case 1:
+				this.setInJumpState(true);
+				jumpVelocity = new Vector2D(0.0, 50.0);
+				break;
+			case 2:
+				this.setInJumpState(true);
+				jumpVelocity = new Vector2D(0.0, 100.0);
+				break;
+			default:
+				this.setInJumpState(false);
+				jumpVelocity = new Vector2D(0.0, 0.0);
+				break;
+		}
 	}
 
 	public boolean isPointOnLine(Point2D.Double a, Point2D.Double b, Point2D.Double p) {
