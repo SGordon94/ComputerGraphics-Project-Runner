@@ -159,25 +159,26 @@ public class Dino {
 		return result;
 	}
 
-	public boolean collides(Cloud cloud) {
-		Point2D.Double[] cloudPoints = cloud.getCloudPoints();
-
-		boolean collision = false;
-
+	public boolean collides(Point2D.Double[] pointsList) {
 		for (int i = 0; i < points.length; i++) {
 			Point2D.Double a = points[i];
 			Point2D.Double b = points[(i + 1) % points.length];
 			// Point2D.Double b = points[(i + 1) % points.length];
-			for (int j = 0; j < cloudPoints.length; j++) {
-				Point2D.Double c = cloudPoints[j];
-				Point2D.Double d = cloudPoints[(j + 1) % cloudPoints.length];
+			for (int j = 0; j < pointsList.length; j++) {
+				Point2D.Double c = pointsList[j];
+				Point2D.Double d = pointsList[(j + 1) % pointsList.length];
 
 				if (doLinesIntersect(a, b, c, d)) {
 					return true;
 				}
 			}
 		}
-
 		return false;
+	}
+
+	public boolean collides(Cloud cloud) {
+		Point2D.Double[] cloudPoints = cloud.getCloudPoints();
+
+		return collides(cloudPoints);
 	}
 }
