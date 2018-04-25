@@ -142,7 +142,7 @@ public class Dino {
 				break;
 			case 2:
 				this.setInJumpState(true);
-				jumpVelocity = new Vector2D(0.0, 100.0);
+				jumpVelocity = new Vector2D(0.0, 75.0);
 				break;
 			default:
 				this.setInJumpState(false);
