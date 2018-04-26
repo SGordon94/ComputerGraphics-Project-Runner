@@ -30,7 +30,9 @@ public class KeyHandler extends KeyAdapter {
 	// function to handle spacebar press
 	public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_SPACE && !view.getDino().isJumping()) {
-			if(!view.isSpacePressed()) view.setSuperJumpFrameLimit(view.getCounter() + 15);
+			// if space is not pressed already set frame limit for super jump to current frame count + 15 frames 
+			// because this is in 60 FPS, this will make it such that the super jump is active a fourth of a second after the space bar is pressed
+			if (!view.isSpacePressed()) view.setSuperJumpFrameLimit(view.getCounter() + 15);
 			view.setSpacePressed(true);
 		}
 	}
@@ -40,7 +42,7 @@ public class KeyHandler extends KeyAdapter {
 		if (e.getKeyCode() == KeyEvent.VK_SPACE && !view.getDino().isJumping()) {
 			view.getDino().jump();
 			view.setSpacePressed(false);
-			view.getDino().setJumpType(0);
+			view.getDino().setJumpType(0); //reset jump type after jumping
 		}
 	}
 

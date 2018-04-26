@@ -1,6 +1,7 @@
 package runner.application;
 
 import java.awt.geom.Point2D;
+import java.util.Hashtable;
 
 public class Dino {
 
@@ -8,9 +9,9 @@ public class Dino {
 	// Static Members
 	// **********************************************************************
 
-	final static int DEFAULT_NUMBER_OF_SIDES = 6;
-	final static int DEFAULT_WIDTH = 50;
-	final static int DEFAULT_HEIGHT = 50;
+	final static int DEFAULT_NUMBER_OF_SIDES = 4;
+	final static int DEFAULT_WIDTH = 42;
+	final static int DEFAULT_HEIGHT = 48;
 
 	// **********************************************************************
 	// Private Members
@@ -24,30 +25,37 @@ public class Dino {
 	// list of points
 	private Point2D.Double points[];
 
-	// TODO: jump
 	private Vector2D jumpVelocity;
 	private boolean inJumpState;
 	private int currentJumpType; //0 - not jumping, 1 - normal jump, 2 - super jump
+	private Hashtable<String, ImageResource> sprites; //holds all sprites for dino
+	private String currentSprite; //current sprite's key for sprites hashtable
 
 	// **********************************************************************
 	// Constructors and Finalizer
 	// **********************************************************************
 	public Dino() {
-		width = 60;
-		height = 60;
+		width = DEFAULT_WIDTH;
+		height = DEFAULT_HEIGHT;
 		position = new Point2D.Double(0.0, 0.0);
 		points = null;
 		inJumpState = false;
 		currentJumpType = 0;
 		jumpVelocity = new Vector2D(0.0, 0.0);
+		currentSprite = "";
+		loadSprites();
 	}
 
 	public Dino(Point2D.Double position, Point2D.Double points[]) {
+		width = DEFAULT_WIDTH;
+		height = DEFAULT_HEIGHT;
 		this.position = position;
 		this.points = points;
 		inJumpState = false;
 		currentJumpType = 0;
 		jumpVelocity = new Vector2D(0.0, 0.0);
+		currentSprite = "";
+		loadSprites();
 	}
 
 	// **********************************************************************
@@ -119,7 +127,7 @@ public class Dino {
 	}
 
 	public boolean isJumping() {
-		if(inJumpState) return true;
+		if (inJumpState) return true;
 		return false;
 	}
 
@@ -131,20 +139,43 @@ public class Dino {
 		currentJumpType = type;
 	}
 
+	public void setCurrentSprite(String key) {
+		if (key == "crouch0" || key == "crouch1" || key == "run0" || key == "run1" || key == "jump") {
+			currentSprite = key;
+		}	
+	}
+
+	public String getCurrentSprite() {
+		return currentSprite;
+	}
+
+	public ImageResource getCurrentSpriteImage() {
+		return sprites.getOrDefault(currentSprite, new ImageResource("sprites/dino_jump.png"));
+	}
+
+	private void loadSprites() {
+		sprites = new Hashtable<String,ImageResource>();
+		sprites.put("crouch0", new ImageResource("sprites/dino_crouch_0.png"));
+		sprites.put("crouch1", new ImageResource("sprites/dino_crouch_1.png"));
+		sprites.put("jump", new ImageResource("sprites/dino_jump.png"));
+		sprites.put("run0", new ImageResource("sprites/dino_run_0.png"));
+		sprites.put("run1", new ImageResource("sprites/dino_run_1.png"));
+	}
+
 	// **********************************************************************
 	// Public Methods
 	// **********************************************************************
 	public void jump() {
 		switch(currentJumpType) {
-			case 1:
+			case 1: //normal jump
 				this.setInJumpState(true);
 				jumpVelocity = new Vector2D(0.0, 50.0);
 				break;
-			case 2:
+			case 2: //super jump
 				this.setInJumpState(true);
 				jumpVelocity = new Vector2D(0.0, 75.0);
 				break;
-			default:
+			default: //not jumping
 				this.setInJumpState(false);
 				jumpVelocity = new Vector2D(0.0, 0.0);
 				break;

@@ -20,11 +20,17 @@ public final class Application {
 	public static final Rectangle DEFAULT_BOUNDS = new Rectangle(0, 0, 1000, 450);
 
 	// **********************************************************************
+	// Private Class Members
+	// **********************************************************************
+
+	private static GLProfile profile;
+
+	// **********************************************************************
 	// Main
 	// **********************************************************************
 
 	public static void main(String[] args) {
-		GLProfile profile = GLProfile.getDefault();
+		profile = GLProfile.getDefault();
 		GLCapabilities capabilities = new GLCapabilities(profile);
 		GLJPanel canvas = new GLJPanel(capabilities);
 		JFrame frame = new JFrame("Application");
@@ -45,6 +51,10 @@ public final class Application {
 		});
 
 		View view = new View(canvas);
+	}
+
+	public static GLProfile getProfile() {
+		return profile;
 	}
 }
 

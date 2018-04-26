@@ -18,6 +18,7 @@ import javax.media.opengl.glu.GLU;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
+import com.jogamp.opengl.util.texture.Texture;
 
 public class View implements GLEventListener {
 
@@ -40,27 +41,18 @@ public class View implements GLEventListener {
 	private final GLJPanel canvas;
 
 	// dino model
-	// private Dino saur;
 	private Dino dino;
-	// public ArrayList<Point> pointsList;
 	public Random rand;
-	// int jumpModifier = -10;
-	// Used if spacebar is let go early
-	// int shortJump = 0;
 
 	private int counter = 0; // Just an animation counter
-	private int jumpFrameLimit = 0;
+	private int jumpFrameLimit = 0; // Limit for super jump
 	private boolean spaceIsPressed = false;
 	private int w; // Canvas width
 	private int h; // Canvas height
-	private double floorLocY = 80.0;
-	private Vector2D gravity = new Vector2D(0.0, -15.0);
-
-	// private final KeyHandler keyHandler;
-	// private final MouseHandler mouseHandler;
+	private double floorLocY = 80.0; //ground location for dino
+	private Vector2D gravity = new Vector2D(0.0, -15.0); //gravity vector
 
 	private final FPSAnimator animator;
-
 	private TextRenderer renderer;
 
 	private Point2D.Double origin; // Current origin coordinates
@@ -74,16 +66,12 @@ public class View implements GLEventListener {
 	public View(GLJPanel canvas) {
 
 		// init dino model info
-		// set position
-		Point2D.Double position = new Point2D.Double(200.0, floorLocY);
-		// TODO: make this not a simple polygon
-		// generate polygon points
-		Point2D.Double[] polygonPoints = generatePolygon(position, Dino.DEFAULT_NUMBER_OF_SIDES, Dino.DEFAULT_HEIGHT,
-				Dino.DEFAULT_HEIGHT);
+		Point2D.Double position = new Point2D.Double(200.0, floorLocY + Dino.DEFAULT_HEIGHT);
+		Point2D.Double[] polygonPoints = generateDinoPoints(position, Dino.DEFAULT_WIDTH, Dino.DEFAULT_HEIGHT); //generates bounding box for dino
 		this.dino = new Dino(position, polygonPoints);
+		dino.setCurrentSprite("run0"); //sets initial sprite to run0
 
 		this.canvas = canvas;
-
 		cursor = null;
 
 		// Initialize model
@@ -98,7 +86,6 @@ public class View implements GLEventListener {
 
 		this.cloudList = new ArrayList<Cloud>();
 		rand = new Random();
-		// new MouseHandler(this);
 
 		addCloud();
 
@@ -113,6 +100,16 @@ public class View implements GLEventListener {
 			e.printStackTrace();
 		}
 
+	}
+
+	private Point2D.Double[] generateDinoPoints(Point2D.Double center, int w, int h) {
+		//generate bounding box for dino
+		Point2D.Double[] points = new Point2D.Double[4];
+		points[0] = new Point2D.Double(center.x - w/2, center.y - h/2);
+		points[1] = new Point2D.Double(center.x - w/2, center.y + h/2);
+		points[2] = new Point2D.Double(center.x + w/2, center.y + h/2);
+		points[3] = new Point2D.Double(center.x + w/2, center.y - h/2);
+		return points;
 	}
 
 	private Point2D.Double[] generatePolygon(Point2D.Double center, int sides, int w, int h) {
@@ -140,14 +137,12 @@ public class View implements GLEventListener {
 	public void init(GLAutoDrawable drawable) {
 		w = drawable.getWidth();
 		h = drawable.getHeight();
-
 		renderer = new TextRenderer(new Font("Monospaced", Font.PLAIN, 25), true, true);
 	}
 
 	@Override
 	public void dispose(GLAutoDrawable drawable) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -178,8 +173,7 @@ public class View implements GLEventListener {
 	}
 
 	public boolean isSpacePressed() {
-		if (spaceIsPressed)
-			return true;
+		if (spaceIsPressed) return true;
 		return false;
 	}
 
@@ -214,6 +208,7 @@ public class View implements GLEventListener {
 		this.dino = saur;
 	}
 
+	// set frame limit for super jump
 	public void setSuperJumpFrameLimit(int frameLimit) {
 		jumpFrameLimit = frameLimit;
 	}
@@ -242,37 +237,54 @@ public class View implements GLEventListener {
 	}
 
 	private void updateDino() {
-		if (!spaceIsPressed)
-			jumpFrameLimit = counter;
+		if (!spaceIsPressed) jumpFrameLimit = counter; //as long as space is not pressed update jump frame limit to be equal to current frame count
 		if (counter > jumpFrameLimit) {
-			System.out.println("super jump ready");
+			//when the current frame count passes the frame limit for the super jump, set dino to super jump mode and update sprite to crouch
 			dino.setJumpType(2);
+			dino.setWidth(46);
+			dino.setHeight(44);
+			Point2D.Double[] polygonPoints = generateDinoPoints(dino.getPosition(), dino.getWidth(), dino.getHeight());
+			dino.setPoints(polygonPoints);
+			//current sprite determines which crouch frame to start on
+			String sprite = dino.getCurrentSprite();
+			if (sprite == "run0") dino.setCurrentSprite("crouch0");
+			else if (sprite == "run1") dino.setCurrentSprite("crouch1");
 		}
-		if (counter <= jumpFrameLimit)
-			dino.setJumpType(1);
+		if (counter <= jumpFrameLimit) dino.setJumpType(1); //reset to normal jump
 
 		// if jumping, update dino position and new polygon points
 		if (dino.isJumping()) {
-			double newYPosition = dino.getY() + FRAME_TIME_DELTA * dino.getJumpVelocity().getY(); // new_position =
-																									// old_position +
-																									// delta_time *
-																									// current_velocity
-			double newYVelocity = dino.getJumpVelocity().getY() + FRAME_TIME_DELTA * gravity.y; // new_velocity =
-																								// old_velocity +
-																								// delta_time * gravity
+			// new_position = old_position + delta_time * current_velocity
+			// new_velocity = old_velocity + delta_time * gravity
+			double newYPosition = dino.getY() + FRAME_TIME_DELTA * dino.getJumpVelocity().getY();
+			double newYVelocity = dino.getJumpVelocity().getY() + FRAME_TIME_DELTA * gravity.y; 																
 			dino.setPosition(new Point2D.Double(dino.getX(), newYPosition));
 			dino.setJumpVelocity(new Vector2D(dino.getJumpVelocity().getX(), newYVelocity));
-			Point2D.Double[] polygonPoints = generatePolygon(dino.getPosition(), Dino.DEFAULT_NUMBER_OF_SIDES,
-					Dino.DEFAULT_HEIGHT, Dino.DEFAULT_HEIGHT);
+			dino.setWidth(Dino.DEFAULT_WIDTH);
+			dino.setHeight(Dino.DEFAULT_HEIGHT);
+			Point2D.Double[] polygonPoints = generateDinoPoints(dino.getPosition(), dino.getWidth(), dino.getHeight());
 			dino.setPoints(polygonPoints);
+			dino.setCurrentSprite("jump");
 		}
 
+		// if dino goes below floor location then stop dino and set dino to running
 		if (dino.getPosition().y - dino.getHeight() < floorLocY) {
-			dino.setY(floorLocY);
-			Point2D.Double[] polygonPoints = generatePolygon(dino.getPosition(), Dino.DEFAULT_NUMBER_OF_SIDES,
-					Dino.DEFAULT_HEIGHT, Dino.DEFAULT_HEIGHT);
+			dino.setY(floorLocY + dino.getHeight());
+			dino.setWidth(Dino.DEFAULT_WIDTH);
+			dino.setHeight(Dino.DEFAULT_HEIGHT);
+			Point2D.Double[] polygonPoints = generateDinoPoints(dino.getPosition(), dino.getWidth(), dino.getHeight());
 			dino.setPoints(polygonPoints);
 			dino.setInJumpState(false);
+			dino.setCurrentSprite("run0");
+		}
+		
+		//update dino sprite every 5 frames
+		if (counter % 30 == 0) {
+			String currentSprite = dino.getCurrentSprite();
+			if (currentSprite == "crouch0") dino.setCurrentSprite("crouch1");
+			if (currentSprite == "crouch1") dino.setCurrentSprite("crouch0");
+			if (currentSprite == "run0") 	dino.setCurrentSprite("run1");
+			if (currentSprite == "run1") 	dino.setCurrentSprite("run0"); 
 		}
 	}
 
@@ -373,18 +385,47 @@ public class View implements GLEventListener {
 	}
 
 	private void drawDino(GL2 gl) {
+		//enable blending to allow for png transparency (for texture drawing only)
+		gl.glEnable(GL2.GL_BLEND); 
+		gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
 
-		// TODO: make this a dino
-		gl.glBegin(GL2.GL_POLYGON);
+		//enable texture drawing
+		gl.glEnable(GL2.GL_TEXTURE_2D);
+		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
+		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
+
+		//get texture (the current dino sprite) and bind it to set it as the current texture to draw
+		Texture texture = dino.getCurrentSpriteImage().getTexture();
+		if (texture != null) {
+			gl.glBindTexture(GL2.GL_TEXTURE_2D, texture.getTextureObject());
+		}
+
+		gl.glBegin(GL2.GL_QUADS); //use quads to draw bounding box
 
 		gl.glColor3d(0.403922, 0.560784, 0);
 
-		for (Point2D.Double point : dino.getPoints()) {
-			gl.glVertex2d(point.getX(), point.getY());
-		}
+		Point2D.Double[] points = dino.getPoints();
+
+		//texture coordinates are relative to texture's bounding box and takes values between 0.0 and 1.0
+		//so to use full bounding box width and height, texture coordinates must span 0 and 1
+		//for sprite facing left, texture coordinate starts in top right and goes counter-clockwise so that sprite is facing right in program
+		gl.glTexCoord2d(1, 1);
+		gl.glVertex2d(points[0].getX(), points[0].getY());
+
+		gl.glTexCoord2d(1, 0);
+		gl.glVertex2d(points[1].getX(), points[1].getY());
+
+		gl.glTexCoord2d(0, 0);
+		gl.glVertex2d(points[2].getX(), points[2].getY());
+
+		gl.glTexCoord2d(0, 1);
+		gl.glVertex2d(points[3].getX(), points[3].getY());
 
 		gl.glEnd();
-
+		gl.glFlush();
+		gl.glBindTexture(GL2.GL_TEXTURE_2D, 0); //unbind any textures
+		gl.glDisable(GL2.GL_TEXTURE_2D); //disable texture drawing
+		gl.glDisable(GL2.GL_BLEND); //disable blending
 	}
 
 	public void addCloud() {
