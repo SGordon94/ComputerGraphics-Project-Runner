@@ -1,6 +1,8 @@
-package runner.application;
+package runner.application.obstacles;
 
 import java.awt.geom.Point2D;
+
+import runner.application.Vector2D;
 
 abstract class Obstacle {
 

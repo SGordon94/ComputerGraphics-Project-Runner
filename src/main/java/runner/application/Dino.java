@@ -2,6 +2,8 @@ package runner.application;
 
 import java.awt.geom.Point2D;
 
+import runner.application.obstacles.Cloud;
+
 public class Dino {
 
 	// **********************************************************************
