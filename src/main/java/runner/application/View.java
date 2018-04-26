@@ -405,7 +405,7 @@ public class View implements GLEventListener {
 			gl.glBegin(GL2.GL_POLYGON);
 
 			gl.glColor3d(0.662745, 0.662745, 0.662745);
-			for (Point2D.Double point : cloud.getCloudPoints()) {
+			for (Point2D.Double point : cloud.getPoints()) {
 				gl.glVertex2d(point.getX(), point.getY());
 			}
 
