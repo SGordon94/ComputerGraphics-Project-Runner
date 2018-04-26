@@ -2,6 +2,8 @@ package runner.application;
 
 import java.awt.geom.Point2D;
 
+import runner.application.obstacles.Cloud;
+
 public class Dino {
 
 	// **********************************************************************
@@ -217,7 +219,7 @@ public class Dino {
 	}
 
 	public boolean collides(Cloud cloud) {
-		Point2D.Double[] cloudPoints = cloud.getCloudPoints();
+		Point2D.Double[] cloudPoints = cloud.getPoints();
 
 		return collides(cloudPoints);
 	}
