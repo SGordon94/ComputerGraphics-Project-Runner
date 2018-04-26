@@ -76,35 +76,6 @@ public class View implements GLEventListener {
 	// **********************************************************************
 	// Constructors and Finalizer
 	// **********************************************************************
-
-	public List<Point2D.Double> generateTree(double x1, double y1, double angle, double depth, double scale,
-			List<Point2D.Double> test) {
-		if (depth == 0)
-			return null;
-
-		double x2 = x1 + (Math.cos(Math.toRadians(angle)) * depth * scale);
-		double y2 = y1 + (Math.sin(Math.toRadians(angle)) * depth * scale);
-
-		test.add(new Point2D.Double(x1, y1));
-
-		// gl.glVertex2d(x1, y1);
-		// gl.glVertex2d(x2, y2);
-		test.add(new Point2D.Double(x2, y2));
-
-		generateTree(x2, y2, angle - 20, depth - 1, scale, test);
-		generateTree(x2, y2, angle + 20, depth - 1, scale, test);
-
-		return test;
-
-	}
-
-	public Point2D.Double[] generateTreePoints(List<Point2D.Double> test) {
-		Point2D.Double[] ok = test.toArray(new Point2D.Double[test.size()]);
-		return ok;
-	}
-
-	Point2D.Double[] please;
-
 	public View(GLJPanel canvas) {
 
 		// init dino model info
@@ -134,18 +105,18 @@ public class View implements GLEventListener {
 		rand = new Random();
 		// new MouseHandler(this);
 
-		List<Point2D.Double> okay = new ArrayList<Point2D.Double>();
-		generateTree(500.0, 200.0, 90, 9, 3.0, okay);
-
-		please = generateTreePoints(okay);
-
 		addCloud();
 
+		this.treeList = new ArrayList<Tree>();
+		addTree();
+
+		// TODO: GAME LOOP
 		try {
 			for (;;) {
 
 				TimeUnit.SECONDS.sleep(rand.nextInt(5) + 1);
 				addCloud();
+				addTree();
 			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -330,45 +301,62 @@ public class View implements GLEventListener {
 		// draw clouds
 		drawClouds(gl);
 
-		// move cloudes
-		moveClouds(gl);
+		// move clouds
+		moveClouds();
 
-		gl.glLineWidth((float) 2.0);
-		gl.glBegin(GL2.GL_LINES);
-		gl.glColor3d(0.392157, 0.247059, 0.0470588f);
-		for (int i = 0; i < please.length; i = i + 2) {
-			if (i == 1) {
-			}
-			gl.glVertex2d(please[i].getX(), please[i].getY());
-			gl.glVertex2d(please[(i + 1) % please.length].getX(), please[(i + 1) % please.length].getY());
+		drawTrees(gl);
 
-		}
-		gl.glEnd();
-
+		moveTrees();
 	}
 
-	public void drawTree(GL2 gl, double x1, double y1, double angle, double depth, double scale) {
+	// Point2D.Double[] please;
+	public List<Point2D.Double> generateTree(double x1, double y1, double angle, double depth, double scale,
+			List<Point2D.Double> test) {
 		if (depth == 0)
-			return;
+			return null;
 
 		double x2 = x1 + (Math.cos(Math.toRadians(angle)) * depth * scale);
 		double y2 = y1 + (Math.sin(Math.toRadians(angle)) * depth * scale);
 
-		gl.glLineWidth((float) 2.0);
-		gl.glBegin(GL2.GL_LINES);
+		test.add(new Point2D.Double(x1, y1));
+		test.add(new Point2D.Double(x2, y2));
 
-		if (depth <= 4)
-			gl.glColor3d(0.278431, 0.392157, 0.0470588);
-		else
+		generateTree(x2, y2, angle - 20, depth - 1, scale, test);
+		generateTree(x2, y2, angle + 20, depth - 1, scale, test);
+
+		return test;
+	}
+
+	public Point2D.Double[] generateTreePoints(List<Point2D.Double> test) {
+		Point2D.Double[] ok = test.toArray(new Point2D.Double[test.size()]);
+		return ok;
+	}
+
+	public void addTree() {
+		List<Point2D.Double> treePoints = new ArrayList<Point2D.Double>();
+		Point2D.Double[] treePointsArray;
+
+		Point2D.Double position = new Point2D.Double(1100, 25.0);
+
+		// TODO: parameterize tree generation
+		treePointsArray = generateTreePoints(generateTree(position.getX(), position.getY(), 90, 9, 2.0, treePoints));
+
+		treeList.add(new Tree(position, new Vector2D(-3, 0), treePointsArray));
+	}
+
+	public void drawTrees(GL2 gl) {
+		for (Tree tree : treeList) {
+			Point2D.Double[] please = tree.getPoints();
+			gl.glLineWidth((float) 2.0);
+			gl.glBegin(GL2.GL_LINES);
 			gl.glColor3d(0.392157, 0.247059, 0.0470588f);
+			for (int i = 0; i < please.length; i = i + 2) {
+				gl.glVertex2d(please[i].getX(), please[i].getY());
+				gl.glVertex2d(please[(i + 1) % please.length].getX(), please[(i + 1) % please.length].getY());
 
-		gl.glVertex2d(x1, y1);
-		gl.glVertex2d(x2, y2);
-		gl.glEnd();
-		gl.glLineWidth((float) 1.0);
-
-		drawTree(gl, x2, y2, angle - 20, depth - 1, scale);
-		drawTree(gl, x2, y2, angle + 20, depth - 1, scale);
+			}
+			gl.glEnd();
+		}
 	}
 
 	// **********************************************************************
@@ -489,7 +477,7 @@ public class View implements GLEventListener {
 		}
 	}
 
-	public void moveClouds(GL2 gl) {
+	public void moveClouds() {
 		// using iterator instead of looping
 		// through the array list of cloud object
 		Iterator<Cloud> iterator = cloudList.iterator();
@@ -508,6 +496,16 @@ public class View implements GLEventListener {
 			// removes clouds that leave the screen
 			if (cloud.getPosition().getX() < -15) {
 				iterator.remove();
+			}
+		}
+	}
+
+	public void moveTrees() {
+		for (Tree tree : treeList) {
+			tree.moveTree();
+
+			if (dino.collides(tree.getPoints())) {
+				System.out.println("GAME OVER BUT I DONT WANT TO FAIL");
 			}
 		}
 	}

@@ -11,4 +11,8 @@ public class Tree extends Obstacle {
 		// TODO Auto-generated constructor stub
 	}
 
+	public void moveTree() {
+		this.addVector(this.velocity);
+	}
+
 }
