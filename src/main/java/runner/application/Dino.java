@@ -29,9 +29,9 @@ public class Dino {
 
 	private Vector2D jumpVelocity;
 	private boolean inJumpState;
-	private int currentJumpType; //0 - not jumping, 1 - normal jump, 2 - super jump
-	private Hashtable<String, ImageResource> sprites; //holds all sprites for dino
-	private String currentSprite; //current sprite's key for sprites hashtable
+	private int currentJumpType; // 0 - not jumping, 1 - normal jump, 2 - super jump
+	private Hashtable<String, ImageResource> sprites; // holds all sprites for dino
+	private String currentSprite; // current sprite's key for sprites hashtable
 
 	// **********************************************************************
 	// Constructors and Finalizer
@@ -129,7 +129,8 @@ public class Dino {
 	}
 
 	public boolean isJumping() {
-		if (inJumpState) return true;
+		if (inJumpState)
+			return true;
 		return false;
 	}
 
@@ -144,7 +145,7 @@ public class Dino {
 	public void setCurrentSprite(String key) {
 		if (key == "crouch0" || key == "crouch1" || key == "run0" || key == "run1" || key == "jump") {
 			currentSprite = key;
-		}	
+		}
 	}
 
 	public String getCurrentSprite() {
@@ -156,7 +157,7 @@ public class Dino {
 	}
 
 	private void loadSprites() {
-		sprites = new Hashtable<String,ImageResource>();
+		sprites = new Hashtable<String, ImageResource>();
 		sprites.put("crouch0", new ImageResource("sprites/dino_crouch_0.png"));
 		sprites.put("crouch1", new ImageResource("sprites/dino_crouch_1.png"));
 		sprites.put("jump", new ImageResource("sprites/dino_jump.png"));
@@ -168,19 +169,19 @@ public class Dino {
 	// Public Methods
 	// **********************************************************************
 	public void jump() {
-		switch(currentJumpType) {
-			case 1: //normal jump
-				this.setInJumpState(true);
-				jumpVelocity = new Vector2D(0.0, 50.0);
-				break;
-			case 2: //super jump
-				this.setInJumpState(true);
-				jumpVelocity = new Vector2D(0.0, 75.0);
-				break;
-			default: //not jumping
-				this.setInJumpState(false);
-				jumpVelocity = new Vector2D(0.0, 0.0);
-				break;
+		switch (currentJumpType) {
+		case 1: // normal jump
+			this.setInJumpState(true);
+			jumpVelocity = new Vector2D(0.0, 50.0);
+			break;
+		case 2: // super jump
+			this.setInJumpState(true);
+			jumpVelocity = new Vector2D(0.0, 75.0);
+			break;
+		default: // not jumping
+			this.setInJumpState(false);
+			jumpVelocity = new Vector2D(0.0, 0.0);
+			break;
 		}
 	}
 

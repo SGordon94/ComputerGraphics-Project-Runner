@@ -7,6 +7,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -22,6 +23,7 @@ import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.util.texture.Texture;
 
 import runner.application.obstacles.Cloud;
+import runner.application.obstacles.Fireball;
 import runner.application.obstacles.Tree;
 
 public class View implements GLEventListener {
@@ -53,8 +55,8 @@ public class View implements GLEventListener {
 	private boolean spaceIsPressed = false;
 	private int w; // Canvas width
 	private int h; // Canvas height
-	private double floorLocY = 80.0; //ground location for dino
-	private Vector2D gravity = new Vector2D(0.0, -15.0); //gravity vector
+	private double floorLocY = 80.0; // ground location for dino
+	private Vector2D gravity = new Vector2D(0.0, -15.0); // gravity vector
 
 	private final FPSAnimator animator;
 	private TextRenderer renderer;
@@ -64,6 +66,7 @@ public class View implements GLEventListener {
 
 	ArrayList<Cloud> cloudList;
 	ArrayList<Tree> treeList;
+	List<Fireball> fireballList;
 
 	// **********************************************************************
 	// Constructors and Finalizer
@@ -72,9 +75,13 @@ public class View implements GLEventListener {
 
 		// init dino model info
 		Point2D.Double position = new Point2D.Double(200.0, floorLocY + Dino.DEFAULT_HEIGHT);
-		Point2D.Double[] polygonPoints = generateDinoPoints(position, Dino.DEFAULT_WIDTH, Dino.DEFAULT_HEIGHT); //generates bounding box for dino
+		Point2D.Double[] polygonPoints = generateDinoPoints(position, Dino.DEFAULT_WIDTH, Dino.DEFAULT_HEIGHT); // generates
+																												// bounding
+																												// box
+																												// for
+																												// dino
 		this.dino = new Dino(position, polygonPoints);
-		dino.setCurrentSprite("run0"); //sets initial sprite to run0
+		dino.setCurrentSprite("run0"); // sets initial sprite to run0
 
 		this.canvas = canvas;
 		cursor = null;
@@ -97,28 +104,32 @@ public class View implements GLEventListener {
 		this.treeList = new ArrayList<Tree>();
 		addTree();
 
+		fireballList = new ArrayList<Fireball>();
+
+		addFireball();
+
 		// TODO: GAME LOOP
 		try {
 			for (;;) {
 
 				TimeUnit.SECONDS.sleep(rand.nextInt(5) + 1);
 				addCloud();
-				addTree();
+				addFireball();
+				// addTree();
 			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
 	private Point2D.Double[] generateDinoPoints(Point2D.Double center, int w, int h) {
-		//generate bounding box for dino
+		// generate bounding box for dino
 		Point2D.Double[] points = new Point2D.Double[4];
-		points[0] = new Point2D.Double(center.x - w/2, center.y - h/2);
-		points[1] = new Point2D.Double(center.x - w/2, center.y + h/2);
-		points[2] = new Point2D.Double(center.x + w/2, center.y + h/2);
-		points[3] = new Point2D.Double(center.x + w/2, center.y - h/2);
+		points[0] = new Point2D.Double(center.x - w / 2, center.y - h / 2);
+		points[1] = new Point2D.Double(center.x - w / 2, center.y + h / 2);
+		points[2] = new Point2D.Double(center.x + w / 2, center.y + h / 2);
+		points[3] = new Point2D.Double(center.x + w / 2, center.y - h / 2);
 		return points;
 	}
 
@@ -135,7 +146,6 @@ public class View implements GLEventListener {
 			// add points to array
 			polygonPoints[i] = new Point2D.Double(x + center.getX(), y + center.getY());
 		}
-
 		return polygonPoints;
 	}
 
@@ -183,7 +193,8 @@ public class View implements GLEventListener {
 	}
 
 	public boolean isSpacePressed() {
-		if (spaceIsPressed) return true;
+		if (spaceIsPressed)
+			return true;
 		return false;
 	}
 
@@ -247,27 +258,33 @@ public class View implements GLEventListener {
 	}
 
 	private void updateDino() {
-		if (!spaceIsPressed) jumpFrameLimit = counter; //as long as space is not pressed update jump frame limit to be equal to current frame count
+		if (!spaceIsPressed)
+			jumpFrameLimit = counter; // as long as space is not pressed update jump frame limit to be equal to
+										// current frame count
 		if (counter > jumpFrameLimit) {
-			//when the current frame count passes the frame limit for the super jump, set dino to super jump mode and update sprite to crouch
+			// when the current frame count passes the frame limit for the super jump, set
+			// dino to super jump mode and update sprite to crouch
 			dino.setJumpType(2);
 			dino.setWidth(46);
 			dino.setHeight(44);
 			Point2D.Double[] polygonPoints = generateDinoPoints(dino.getPosition(), dino.getWidth(), dino.getHeight());
 			dino.setPoints(polygonPoints);
-			//current sprite determines which crouch frame to start on
+			// current sprite determines which crouch frame to start on
 			String sprite = dino.getCurrentSprite();
-			if (sprite == "run0") dino.setCurrentSprite("crouch0");
-			else if (sprite == "run1") dino.setCurrentSprite("crouch1");
+			if (sprite == "run0")
+				dino.setCurrentSprite("crouch0");
+			else if (sprite == "run1")
+				dino.setCurrentSprite("crouch1");
 		}
-		if (counter <= jumpFrameLimit) dino.setJumpType(1); //reset to normal jump
+		if (counter <= jumpFrameLimit)
+			dino.setJumpType(1); // reset to normal jump
 
 		// if jumping, update dino position and new polygon points
 		if (dino.isJumping()) {
 			// new_position = old_position + delta_time * current_velocity
 			// new_velocity = old_velocity + delta_time * gravity
 			double newYPosition = dino.getY() + FRAME_TIME_DELTA * dino.getJumpVelocity().getY();
-			double newYVelocity = dino.getJumpVelocity().getY() + FRAME_TIME_DELTA * gravity.y; 																
+			double newYVelocity = dino.getJumpVelocity().getY() + FRAME_TIME_DELTA * gravity.y;
 			dino.setPosition(new Point2D.Double(dino.getX(), newYPosition));
 			dino.setJumpVelocity(new Vector2D(dino.getJumpVelocity().getX(), newYVelocity));
 			dino.setWidth(Dino.DEFAULT_WIDTH);
@@ -287,14 +304,18 @@ public class View implements GLEventListener {
 			dino.setInJumpState(false);
 			dino.setCurrentSprite("run0");
 		}
-		
-		//update dino sprite every 5 frames
+
+		// update dino sprite every 5 frames
 		if (counter % 30 == 0) {
 			String currentSprite = dino.getCurrentSprite();
-			if (currentSprite == "crouch0") dino.setCurrentSprite("crouch1");
-			if (currentSprite == "crouch1") dino.setCurrentSprite("crouch0");
-			if (currentSprite == "run0") 	dino.setCurrentSprite("run1");
-			if (currentSprite == "run1") 	dino.setCurrentSprite("run0"); 
+			if (currentSprite == "crouch0")
+				dino.setCurrentSprite("crouch1");
+			if (currentSprite == "crouch1")
+				dino.setCurrentSprite("crouch0");
+			if (currentSprite == "run0")
+				dino.setCurrentSprite("run1");
+			if (currentSprite == "run1")
+				dino.setCurrentSprite("run0");
 		}
 	}
 
@@ -316,9 +337,16 @@ public class View implements GLEventListener {
 		// move clouds
 		moveClouds();
 
-		drawTrees(gl);
+		// drawTrees(gl);
 
-		moveTrees();
+		// moveTrees();
+
+		drawFireBalls(gl);
+
+		moveFireBalls();
+
+		// fireballList.get(0)
+
 	}
 
 	// Point2D.Double[] please;
@@ -449,30 +477,34 @@ public class View implements GLEventListener {
 	}
 
 	private void drawDino(GL2 gl) {
-		//enable blending to allow for png transparency (for texture drawing only)
-		gl.glEnable(GL2.GL_BLEND); 
+		// enable blending to allow for png transparency (for texture drawing only)
+		gl.glEnable(GL2.GL_BLEND);
 		gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
 
-		//enable texture drawing
+		// enable texture drawing
 		gl.glEnable(GL2.GL_TEXTURE_2D);
 		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
 		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
 
-		//get texture (the current dino sprite) and bind it to set it as the current texture to draw
+		// get texture (the current dino sprite) and bind it to set it as the current
+		// texture to draw
 		Texture texture = dino.getCurrentSpriteImage().getTexture();
 		if (texture != null) {
 			gl.glBindTexture(GL2.GL_TEXTURE_2D, texture.getTextureObject());
 		}
 
-		gl.glBegin(GL2.GL_QUADS); //use quads to draw bounding box
+		gl.glBegin(GL2.GL_QUADS); // use quads to draw bounding box
 
 		gl.glColor3d(0.403922, 0.560784, 0);
 
 		Point2D.Double[] points = dino.getPoints();
 
-		//texture coordinates are relative to texture's bounding box and takes values between 0.0 and 1.0
-		//so to use full bounding box width and height, texture coordinates must span 0 and 1
-		//for sprite facing left, texture coordinate starts in top right and goes counter-clockwise so that sprite is facing right in program
+		// texture coordinates are relative to texture's bounding box and takes values
+		// between 0.0 and 1.0
+		// so to use full bounding box width and height, texture coordinates must span 0
+		// and 1
+		// for sprite facing left, texture coordinate starts in top right and goes
+		// counter-clockwise so that sprite is facing right in program
 		gl.glTexCoord2d(1, 1);
 		gl.glVertex2d(points[0].getX(), points[0].getY());
 
@@ -487,9 +519,73 @@ public class View implements GLEventListener {
 
 		gl.glEnd();
 		gl.glFlush();
-		gl.glBindTexture(GL2.GL_TEXTURE_2D, 0); //unbind any textures
-		gl.glDisable(GL2.GL_TEXTURE_2D); //disable texture drawing
-		gl.glDisable(GL2.GL_BLEND); //disable blending
+		gl.glBindTexture(GL2.GL_TEXTURE_2D, 0); // unbind any textures
+		gl.glDisable(GL2.GL_TEXTURE_2D); // disable texture drawing
+		gl.glDisable(GL2.GL_BLEND); // disable blending
+	}
+
+	public void drawFireBalls(GL2 gl) {
+
+		ListIterator<Fireball> iterator = fireballList.listIterator();
+
+		while (iterator.hasNext()) {
+			Fireball fiyaball = iterator.next();
+			// gl.glBegin(GL2.GL_POLYGON);
+			// gl.glColor3d(1.0, 1.0, 1.0);
+			//
+			// for (Point2D.Double point : fiyaball.getPoints()) {
+			// gl.glVertex2d(point.getX(), point.getY());
+			// }
+			//
+			// gl.glEnd();
+			// enable blending to allow for png transparency (for texture drawing only)
+			gl.glEnable(GL2.GL_BLEND);
+			gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
+
+			// enable texture drawing
+			gl.glEnable(GL2.GL_TEXTURE_2D);
+			gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
+			gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
+
+			// get texture (the current dino sprite) and bind it to set it as the current
+			// texture to draw
+			Texture texture = fiyaball.getSprite().getTexture();
+			if (texture != null) {
+				gl.glBindTexture(GL2.GL_TEXTURE_2D, texture.getTextureObject());
+			}
+
+			gl.glBegin(GL2.GL_QUADS); // use quads to draw bounding box
+
+			// gl.glColor3d(0.403922, 0.560784, 0);
+			gl.glColor3d(1, 1, 1);
+
+			Point2D.Double[] points = fiyaball.getPoints();
+
+			// texture coordinates are relative to texture's bounding box and takes values
+			// between 0.0 and 1.0
+			// so to use full bounding box width and height, texture coordinates must span 0
+			// and 1
+			// for sprite facing left, texture coordinate starts in top right and goes
+			// counter-clockwise so that sprite is facing right in program
+			gl.glTexCoord2d(1, 1);
+			gl.glVertex2d(points[0].getX(), points[0].getY());
+
+			gl.glTexCoord2d(1, 0);
+			gl.glVertex2d(points[1].getX(), points[1].getY());
+
+			gl.glTexCoord2d(0, 0);
+			gl.glVertex2d(points[2].getX(), points[2].getY());
+
+			gl.glTexCoord2d(0, 1);
+			gl.glVertex2d(points[3].getX(), points[3].getY());
+
+			gl.glEnd();
+			gl.glFlush();
+			gl.glBindTexture(GL2.GL_TEXTURE_2D, 0); // unbind any textures
+			gl.glDisable(GL2.GL_TEXTURE_2D); // disable texture drawing
+			gl.glDisable(GL2.GL_BLEND); // disable blending
+		}
+
 	}
 
 	public void addCloud() {
@@ -549,5 +645,48 @@ public class View implements GLEventListener {
 				System.out.println("GAME OVER BUT I DONT WANT TO FAIL");
 			}
 		}
+	}
+
+	public void moveFireBalls() {
+		// init list iterator
+		ListIterator<Fireball> iterator = fireballList.listIterator();
+
+		// iterator through fireball list
+		while (iterator.hasNext()) {
+			Fireball fiyaBall = iterator.next();
+
+			// move fireball
+			fiyaBall.moveFireball();
+
+			// remove fireballs that are off the view
+			if (fiyaBall.getPosition().getX() <= -700) {
+				iterator.remove();
+			}
+		}
+	}
+
+	public void addFireball() {
+		rand = new Random();
+
+		// initial fireball position (outside the view)
+		// with random height position
+		double y = (double) (rand.nextInt(300 + 1 - 20) + 20);
+		Point2D.Double fiya = new Point2D.Double(500.0, y);
+
+		// generate random velocity
+		Vector2D velocity = new Vector2D(-(rand.nextInt(4) + 1), 0);
+
+		// generate fireball points
+		Point2D.Double[] points = new Point2D.Double[4];
+		points[0] = new Point2D.Double(1100, y + 20);
+		points[1] = new Point2D.Double(1060, y + 20);
+		points[2] = new Point2D.Double(1060, y - 20);
+		points[3] = new Point2D.Double(1100, y - 20);
+
+		// init list iterator
+		ListIterator<Fireball> iterator = fireballList.listIterator();
+
+		// add new fire ball to list
+		iterator.add(new Fireball(fiya, velocity, points));
 	}
 }
