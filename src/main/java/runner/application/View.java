@@ -59,10 +59,10 @@ public class View implements GLEventListener {
 	// canvas dimension
 	private int w;
 	private int h;
-
+	
 	// font size
 	private int fontSize = 25;
-
+	
 	// score
 	private int score;
 
@@ -142,7 +142,7 @@ public class View implements GLEventListener {
 	public void init(GLAutoDrawable drawable) {
 		w = drawable.getWidth();
 		h = drawable.getHeight();
-
+		
 		score = 0;
 		renderer = new TextRenderer(new Font("Monospaced", Font.PLAIN, fontSize), true, true);
 	}
@@ -250,7 +250,7 @@ public class View implements GLEventListener {
 		// draw / move trees
 		drawTrees(gl);
 		moveTrees();
-
+		
 		// draw the score
 		drawScore(drawable);
 
@@ -395,13 +395,13 @@ public class View implements GLEventListener {
 	private void drawGround(GL2 gl) {
 		gl.glBegin(GL2.GL_POLYGON);
 
-		int yo = 2 * (this.getHeight() / 3); // 2/3 the height
+		int yo = 0; // 2/3 the height
 
 		gl.glColor3d(0.392157, 0.247059, 0.0470588f);
 		gl.glVertex2i(0, yo);
 		gl.glVertex2i(this.getWidth(), yo);
-		gl.glVertex2i(this.getWidth(), this.getHeight());
-		gl.glVertex2i(0, this.getHeight());
+		gl.glVertex2i(this.getWidth(), this.getHeight()/3);
+		gl.glVertex2i(0, this.getHeight()/3);
 
 		gl.glColor3f(0, 0, 0);
 
@@ -421,32 +421,33 @@ public class View implements GLEventListener {
 
 		gl.glColor3d(0.278431, 0.392157, 0.0470588);
 		gl.glVertex2i(dx + 30, yo);
-		gl.glVertex2i(dx + (-20), this.getHeight());
-		gl.glVertex2i(dx + (-10), this.getHeight());
+		gl.glVertex2i(dx + (-20), this.getHeight()/3);
+		gl.glVertex2i(dx + (-10), this.getHeight()/3);
 		gl.glVertex2i(dx + 40, yo);
 
 		gl.glEnd();
 	}
-
-	private void drawScore(GLAutoDrawable drawable) {
+	
+	private void drawScore(GLAutoDrawable drawable)
+	{
 
 		// if score is 999999(max) just keep it at max
 		// score is calculated using time passed based on the counter/75
 		// 75 was chosen just so score doesn't increase too quickly
-		score = (score < 999999) ? (int) Math.ceil(counter / 75) : score;
-
+		score = (score < 999999)? (int)Math.ceil(counter/75) : score;
+		
 		// Use time passed AKA counter to calculate the score
-		String s = "Score: " + score;
+		String	s = "Score: " + score;
 
 		renderer.beginRendering(drawable.getWidth(), drawable.getHeight());
 		renderer.setColor(1.0f, 1.0f, 0, 1.0f);
-		// 7 is the length of the string 'Score: '
+		// 7 is the length of the string 'Score: ' 
 		// 6 is the max length of score 999999
-		// 16 was found from trial and error starting from 25(font size) and gradually
-		// decreasing
-		renderer.draw(s, this.getWidth() - (7 + 6) * 16, this.getHeight() - 25);
+		// 16 was found from trial and error starting from 25(font size) and gradually decreasing
+		renderer.draw(s, this.getWidth()-(7+6)*16, this.getHeight()-25);
 		renderer.endRendering();
 	}
+
 
 	private void drawDino(GL2 gl) {
 		// enable blending to allow for png transparency (for texture drawing only)
@@ -560,8 +561,8 @@ public class View implements GLEventListener {
 			gl.glColor3d(0.392157, 0.247059, 0.0470588f);
 			for (int i = 0; i < please.length; i = i + 2) {
 				// 70 is chosen to change the height closer to the player model
-				gl.glVertex2d(please[i].getX(), please[i].getY() + 70);
-				gl.glVertex2d(please[(i + 1) % please.length].getX(), please[(i + 1) % please.length].getY() + 70);
+				gl.glVertex2d(please[i].getX(), please[i].getY()+70);
+				gl.glVertex2d(please[(i + 1) % please.length].getX(), please[(i + 1) % please.length].getY()+70);
 
 			}
 			gl.glEnd();
@@ -650,7 +651,6 @@ public class View implements GLEventListener {
 				// remove all obstacles
 				fireballList = new ArrayList<Fireball>();
 				treeList = new ArrayList<Tree>();
-				this.counter = 0;
 			}
 		}
 	}
@@ -673,7 +673,6 @@ public class View implements GLEventListener {
 				// remove all obstacles
 				fireballList = new ArrayList<Fireball>();
 				treeList = new ArrayList<Tree>();
-				this.counter = 0;
 			}
 		}
 	}
