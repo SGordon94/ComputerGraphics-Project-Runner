@@ -1,6 +1,7 @@
 package runner.application;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
 
 import com.jogamp.opengl.util.FPSAnimator;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.util.texture.Texture;
 
@@ -33,6 +35,7 @@ public class View implements GLEventListener {
 	public static final Random RANDOM = new Random();
 	public static final int DEFAULT_FRAMES_PER_SECOND = 60;
 	public static final double FRAME_TIME_DELTA = 5.0 * 1.0 / (double) DEFAULT_FRAMES_PER_SECOND;
+	private TextRenderer renderer;
 	// private static final DecimalFormat FORMAT = new DecimalFormat("0.000");
 
 	// **********************************************************************
@@ -56,6 +59,12 @@ public class View implements GLEventListener {
 	// canvas dimension
 	private int w;
 	private int h;
+	
+	// font size
+	private int fontSize = 25;
+	
+	// score
+	private int score;
 
 	// ground location for dino
 	private double floorLocY = 80.0;
@@ -133,11 +142,15 @@ public class View implements GLEventListener {
 	public void init(GLAutoDrawable drawable) {
 		w = drawable.getWidth();
 		h = drawable.getHeight();
+		
+		score = 0;
+		renderer = new TextRenderer(new Font("Monospaced", Font.PLAIN, fontSize), true, true);
 	}
 
 	@Override
 	public void dispose(GLAutoDrawable drawable) {
 		// TODO Auto-generated method stub
+		renderer = null;
 	}
 
 	@Override
@@ -237,6 +250,9 @@ public class View implements GLEventListener {
 		// draw / move trees
 		drawTrees(gl);
 		moveTrees();
+		
+		// draw the score
+		drawScore(drawable);
 
 		// dino.getPoints();
 		// gl.glBegin(GL2.GL_LINE_LOOP);
@@ -411,6 +427,27 @@ public class View implements GLEventListener {
 
 		gl.glEnd();
 	}
+	
+	private void drawScore(GLAutoDrawable drawable)
+	{
+
+		// if score is 999999(max) just keep it at max
+		// score is calculated using time passed based on the counter/75
+		// 75 was chosen just so score doesn't increase too quickly
+		score = (score < 999999)? (int)Math.ceil(counter/75) : score;
+		
+		// Use time passed AKA counter to calculate the score
+		String	s = "Score: " + score;
+
+		renderer.beginRendering(drawable.getWidth(), drawable.getHeight());
+		renderer.setColor(1.0f, 1.0f, 0, 1.0f);
+		// 7 is the length of the string 'Score: ' 
+		// 6 is the max length of score 999999
+		// 16 was found from trial and error starting from 25(font size) and gradually decreasing
+		renderer.draw(s, this.getWidth()-(7+6)*16, this.getHeight()-25);
+		renderer.endRendering();
+	}
+
 
 	private void drawDino(GL2 gl) {
 		// enable blending to allow for png transparency (for texture drawing only)
@@ -523,8 +560,9 @@ public class View implements GLEventListener {
 			gl.glBegin(GL2.GL_LINES);
 			gl.glColor3d(0.392157, 0.247059, 0.0470588f);
 			for (int i = 0; i < please.length; i = i + 2) {
-				gl.glVertex2d(please[i].getX(), please[i].getY());
-				gl.glVertex2d(please[(i + 1) % please.length].getX(), please[(i + 1) % please.length].getY());
+				// 70 is chosen to change the height closer to the player model
+				gl.glVertex2d(please[i].getX(), please[i].getY()+70);
+				gl.glVertex2d(please[(i + 1) % please.length].getX(), please[(i + 1) % please.length].getY()+70);
 
 			}
 			gl.glEnd();
