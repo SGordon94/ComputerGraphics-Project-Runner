@@ -397,7 +397,7 @@ public class View implements GLEventListener {
 
 		int yo = 0; // 2/3 the height
 
-		gl.glColor3d(0.392157, 0.247059, 0.0470588f);
+		gl.glColor3d(0.22, 0.36, 0.22);
 		gl.glVertex2i(0, yo);
 		gl.glVertex2i(this.getWidth(), yo);
 		gl.glVertex2i(this.getWidth(), this.getHeight() / 3);
