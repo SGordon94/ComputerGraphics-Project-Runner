@@ -1,21 +1,17 @@
 package runner.application;
 
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
 import com.jogamp.opengl.util.FPSAnimator;
-import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.util.texture.Texture;
 import runner.application.obstacles.Cloud;
@@ -64,7 +60,6 @@ public class View implements GLEventListener {
 	private Vector2D gravity = new Vector2D(0.0, -15.0);
 
 	private final FPSAnimator animator;
-	private TextRenderer renderer;
 
 	// obstacle lists
 	ArrayList<Cloud> cloudList;
@@ -108,7 +103,7 @@ public class View implements GLEventListener {
 		this.fireballList = new ArrayList<Fireball>();
 
 		// add first obstacle to view
-		addCloud();
+		// addCloud();
 		// addTree();
 		addFireball();
 
@@ -127,32 +122,6 @@ public class View implements GLEventListener {
 		// }
 	}
 
-	private Point2D.Double[] generateDinoPoints(Point2D.Double center, int w, int h) {
-		// generate bounding box for dino
-		Point2D.Double[] points = new Point2D.Double[4];
-		points[0] = new Point2D.Double(center.x - w / 2, center.y - h / 2);
-		points[1] = new Point2D.Double(center.x - w / 2, center.y + h / 2);
-		points[2] = new Point2D.Double(center.x + w / 2, center.y + h / 2);
-		points[3] = new Point2D.Double(center.x + w / 2, center.y - h / 2);
-		return points;
-	}
-
-	private Point2D.Double[] generatePolygon(Point2D.Double center, int sides, int w, int h) {
-		Point2D.Double[] polygonPoints = new Point2D.Double[sides];
-
-		// generate points based off circle method
-		for (int i = 0; i < sides; i++) {
-			double angle = (2 * Math.PI * i) / sides;
-
-			double x = Math.cos(angle) * w;
-			double y = Math.sin(angle) * h;
-
-			// add points to array
-			polygonPoints[i] = new Point2D.Double(x + center.getX(), y + center.getY());
-		}
-		return polygonPoints;
-	}
-
 	// **********************************************************************
 	// Override Methods (GLEventListener)
 	// **********************************************************************
@@ -161,7 +130,6 @@ public class View implements GLEventListener {
 	public void init(GLAutoDrawable drawable) {
 		w = drawable.getWidth();
 		h = drawable.getHeight();
-		renderer = new TextRenderer(new Font("Monospaced", Font.PLAIN, 25), true, true);
 	}
 
 	@Override
@@ -197,9 +165,7 @@ public class View implements GLEventListener {
 	}
 
 	public boolean isSpacePressed() {
-		if (spaceIsPressed)
-			return true;
-		return false;
+		return spaceIsPressed ? true : false;
 	}
 
 	public void setSpacePressed(boolean state) {
@@ -233,6 +199,7 @@ public class View implements GLEventListener {
 		glu.gluOrtho2D(0.0f, 1000.0f, 0.0f, 450.0f);
 
 	}
+
 	// **********************************************************************
 	// Private Methods (Rendering)
 	// **********************************************************************
@@ -240,6 +207,74 @@ public class View implements GLEventListener {
 	private void update() {
 		updateDino();
 		counter++; // Counters are useful, right?
+	}
+
+	private void render(GLAutoDrawable drawable) {
+		GL2 gl = drawable.getGL().getGL2();
+
+		// Clear the buffer
+		gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
+
+		// Updates window projection
+		setProjection(gl);
+
+		// TODO: BACKGROUND PLEASE
+		drawBackground(gl);
+
+		// TODO: GROUND PLEASE
+		drawGround(gl);
+
+		// draw dino character
+		drawDino(gl);
+
+		// draw / move fireballs
+		drawFireBalls(gl);
+		moveFireBalls();
+
+		// // draw clouds
+		// drawClouds(gl);
+		// // move clouds
+		// moveClouds();
+
+		// drawTrees(gl);
+
+		// moveTrees();
+	}
+
+	public List<Point2D.Double> generateTree(double x1, double y1, double angle, double depth, double scale,
+			List<Point2D.Double> test) {
+		if (depth == 0)
+			return null;
+
+		double x2 = x1 + (Math.cos(Math.toRadians(angle)) * depth * scale);
+		double y2 = y1 + (Math.sin(Math.toRadians(angle)) * depth * scale);
+
+		test.add(new Point2D.Double(x1, y1));
+		test.add(new Point2D.Double(x2, y2));
+
+		generateTree(x2, y2, angle - 20, depth - 1, scale, test);
+		generateTree(x2, y2, angle + 20, depth - 1, scale, test);
+
+		return test;
+	}
+
+	public Point2D.Double[] generateTreePoints(List<Point2D.Double> test) {
+		Point2D.Double[] ok = test.toArray(new Point2D.Double[test.size()]);
+		return ok;
+	}
+
+	// **********************************************************************
+	// Private Methods (Dino Logic)
+	// **********************************************************************
+
+	private Point2D.Double[] generateDinoPoints(Point2D.Double center, int w, int h) {
+		// generate bounding box for dino
+		Point2D.Double[] points = new Point2D.Double[4];
+		points[0] = new Point2D.Double(center.x - w / 2, center.y - h / 2);
+		points[1] = new Point2D.Double(center.x - w / 2, center.y + h / 2);
+		points[2] = new Point2D.Double(center.x + w / 2, center.y + h / 2);
+		points[3] = new Point2D.Double(center.x + w / 2, center.y - h / 2);
+		return points;
 	}
 
 	private void updateDino() {
@@ -304,104 +339,9 @@ public class View implements GLEventListener {
 		}
 	}
 
-	private void render(GLAutoDrawable drawable) {
-		GL2 gl = drawable.getGL().getGL2();
-
-		gl.glClear(GL2.GL_COLOR_BUFFER_BIT); // Clear the buffer
-
-		setProjection(gl);
-
-		drawBackground(gl);
-		drawGround(gl);
-		drawCursorCoordinates(gl); // Draw some text
-		drawDino(gl);
-
-		// draw clouds
-		drawClouds(gl);
-
-		// move clouds
-		moveClouds();
-
-		// drawTrees(gl);
-
-		// moveTrees();
-
-		drawFireBalls(gl);
-
-		moveFireBalls();
-
-		// fireballList.get(0)
-
-	}
-
-	// Point2D.Double[] please;
-	public List<Point2D.Double> generateTree(double x1, double y1, double angle, double depth, double scale,
-			List<Point2D.Double> test) {
-		if (depth == 0)
-			return null;
-
-		double x2 = x1 + (Math.cos(Math.toRadians(angle)) * depth * scale);
-		double y2 = y1 + (Math.sin(Math.toRadians(angle)) * depth * scale);
-
-		test.add(new Point2D.Double(x1, y1));
-		test.add(new Point2D.Double(x2, y2));
-
-		generateTree(x2, y2, angle - 20, depth - 1, scale, test);
-		generateTree(x2, y2, angle + 20, depth - 1, scale, test);
-
-		return test;
-	}
-
-	public Point2D.Double[] generateTreePoints(List<Point2D.Double> test) {
-		Point2D.Double[] ok = test.toArray(new Point2D.Double[test.size()]);
-		return ok;
-	}
-
-	public void addTree() {
-		List<Point2D.Double> treePoints = new ArrayList<Point2D.Double>();
-		Point2D.Double[] treePointsArray;
-
-		Point2D.Double position = new Point2D.Double(1100, 25.0);
-
-		// TODO: parameterize tree generation
-		treePointsArray = generateTreePoints(generateTree(position.getX(), position.getY(), 90, 9, 2.0, treePoints));
-
-		treeList.add(new Tree(position, new Vector2D(-3, 0), treePointsArray));
-	}
-
-	public void drawTrees(GL2 gl) {
-		for (Tree tree : treeList) {
-			Point2D.Double[] please = tree.getPoints();
-			gl.glLineWidth((float) 2.0);
-			gl.glBegin(GL2.GL_LINES);
-			gl.glColor3d(0.392157, 0.247059, 0.0470588f);
-			for (int i = 0; i < please.length; i = i + 2) {
-				gl.glVertex2d(please[i].getX(), please[i].getY());
-				gl.glVertex2d(please[(i + 1) % please.length].getX(), please[(i + 1) % please.length].getY());
-
-			}
-			gl.glEnd();
-		}
-	}
-
 	// **********************************************************************
 	// Private Methods (Scene)
 	// **********************************************************************
-	// TODO: for score stuff
-	private void drawCursorCoordinates(GL2 gl) {
-		// if (cursor == null)
-		// return;
-		//
-		// String sx = FORMAT.format(new Double(cursor.x));
-		// String sy = FORMAT.format(new Double(cursor.y));
-		// String s = "(" + sx + "," + sy + ")";
-		String s = "yay";
-
-		renderer.beginRendering(this.getWidth(), this.getHeight());
-		renderer.setColor(1.0f, 1.0f, 0, 1.0f);
-		renderer.draw(s, 2, 2);
-		renderer.endRendering();
-	}
 
 	private void drawBackground(GL2 gl) {
 		gl.glBegin(GL2.GL_POLYGON);
@@ -455,14 +395,6 @@ public class View implements GLEventListener {
 		gl.glEnd();
 	}
 
-	// **********************************************************************
-	// Public Methods
-	// **********************************************************************
-	public Component getComponent() {
-		// TODO Auto-generated method stub
-		return (Component) canvas;
-	}
-
 	private void drawDino(GL2 gl) {
 		// enable blending to allow for png transparency (for texture drawing only)
 		gl.glEnable(GL2.GL_BLEND);
@@ -511,7 +443,7 @@ public class View implements GLEventListener {
 		gl.glDisable(GL2.GL_BLEND); // disable blending
 	}
 
-	public void drawFireBalls(GL2 gl) {
+	private void drawFireBalls(GL2 gl) {
 
 		ListIterator<Fireball> iterator = fireballList.listIterator();
 
@@ -575,84 +507,36 @@ public class View implements GLEventListener {
 
 	}
 
-	public void addCloud() {
-		Random rand = new Random();
-		double x = 1020.0;
-		double y = (double) (rand.nextInt(300 + 1 - 20) + 20);
+	private void drawTrees(GL2 gl) {
+		for (Tree tree : treeList) {
+			Point2D.Double[] please = tree.getPoints();
+			gl.glLineWidth((float) 2.0);
+			gl.glBegin(GL2.GL_LINES);
+			gl.glColor3d(0.392157, 0.247059, 0.0470588f);
+			for (int i = 0; i < please.length; i = i + 2) {
+				gl.glVertex2d(please[i].getX(), please[i].getY());
+				gl.glVertex2d(please[(i + 1) % please.length].getX(), please[(i + 1) % please.length].getY());
 
-		Point2D.Double position = new Point2D.Double(x, y);
-		Vector2D velocity = new Vector2D(-(rand.nextInt(5) + 1), 0);
-		Point2D.Double[] cloudPoints = generatePolygon(position, 32, 30, 20);
-		cloudList.add(new Cloud(position, velocity, cloudPoints));
-	}
-
-	public void drawClouds(GL2 gl) {
-
-		for (Cloud cloud : cloudList) {
-
-			gl.glBegin(GL2.GL_POLYGON);
-
-			gl.glColor3d(0.662745, 0.662745, 0.662745);
-			for (Point2D.Double point : cloud.getPoints()) {
-				gl.glVertex2d(point.getX(), point.getY());
 			}
-
 			gl.glEnd();
 		}
 	}
 
-	public void moveClouds() {
-		// using iterator instead of looping
-		// through the array list of cloud object
-		Iterator<Cloud> iterator = cloudList.iterator();
-		while (iterator.hasNext()) {
-
-			Cloud cloud = iterator.next();
-
-			// move cloud by adding velocity vector to position
-			cloud.moveCloud();
-
-			/* TODO: this is the collision test it works.... */
-			if (dino.collides(cloud)) {
-				iterator.remove();
-			}
-
-			// removes clouds that leave the screen
-			if (cloud.getPosition().getX() < -15) {
-				iterator.remove();
-			}
-		}
+	// **********************************************************************
+	// Public Methods
+	// **********************************************************************
+	public Component getComponent() {
+		// TODO Auto-generated method stub
+		return (Component) canvas;
 	}
 
-	public void moveTrees() {
-		for (Tree tree : treeList) {
-			tree.moveTree();
+	// **********************************************************************
+	// Public Methods / add obstacles to view
+	// **********************************************************************
 
-			if (dino.collides(tree.getPoints())) {
-				System.out.println("GAME OVER BUT I DONT WANT TO FAIL");
-			}
-		}
-	}
-
-	public void moveFireBalls() {
-		// init list iterator
-		ListIterator<Fireball> iterator = fireballList.listIterator();
-
-		// iterator through fireball list
-		while (iterator.hasNext()) {
-			Fireball fiyaBall = iterator.next();
-
-			// move fireball
-			fiyaBall.moveFireball();
-
-			// remove fireballs that are off the view
-			if (fiyaBall.getPosition().getX() <= -700) {
-				iterator.remove();
-			}
-		}
-	}
-
+	/* add fireball to view */
 	public void addFireball() {
+		// init random object
 		rand = new Random();
 
 		// initial fireball position (outside the view)
@@ -676,4 +560,49 @@ public class View implements GLEventListener {
 		// add new fire ball to list
 		iterator.add(new Fireball(fiya, velocity, points));
 	}
+
+	public void addTree() {
+		List<Point2D.Double> treePoints = new ArrayList<Point2D.Double>();
+		Point2D.Double[] treePointsArray;
+
+		Point2D.Double position = new Point2D.Double(1100, 25.0);
+
+		// TODO: parameterize tree generation
+		treePointsArray = generateTreePoints(generateTree(position.getX(), position.getY(), 90, 9, 2.0, treePoints));
+
+		treeList.add(new Tree(position, new Vector2D(-3, 0), treePointsArray));
+	}
+
+	// **********************************************************************
+	// Public Methods / obstacle movement
+	// **********************************************************************
+
+	public void moveFireBalls() {
+		// init list iterator
+		ListIterator<Fireball> iterator = fireballList.listIterator();
+
+		// iterator through fireball list
+		while (iterator.hasNext()) {
+			Fireball fiyaBall = iterator.next();
+
+			// move fireball
+			fiyaBall.moveFireball();
+
+			// remove fireballs that are off the view
+			if (fiyaBall.getPosition().getX() <= -700) {
+				iterator.remove();
+			}
+		}
+	}
+
+	public void moveTrees() {
+		for (Tree tree : treeList) {
+			tree.moveTree();
+
+			if (dino.collides(tree.getPoints())) {
+				System.out.println("GAME OVER BUT I DONT WANT TO FAIL");
+			}
+		}
+	}
+
 }
