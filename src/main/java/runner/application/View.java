@@ -3,25 +3,21 @@ package runner.application;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.geom.Point2D;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
-
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.util.texture.Texture;
-
 import runner.application.obstacles.Cloud;
 import runner.application.obstacles.Fireball;
 import runner.application.obstacles.Tree;
@@ -37,7 +33,7 @@ public class View implements GLEventListener {
 	public static final Random RANDOM = new Random();
 	public static final int DEFAULT_FRAMES_PER_SECOND = 60;
 	public static final double FRAME_TIME_DELTA = 5.0 * 1.0 / (double) DEFAULT_FRAMES_PER_SECOND;
-	private static final DecimalFormat FORMAT = new DecimalFormat("0.000");
+	// private static final DecimalFormat FORMAT = new DecimalFormat("0.000");
 
 	// **********************************************************************
 	// Private Members
@@ -50,20 +46,27 @@ public class View implements GLEventListener {
 	private Dino dino;
 	public Random rand;
 
-	private int counter = 0; // Just an animation counter
-	private int jumpFrameLimit = 0; // Limit for super jump
+	// Just an animation counter
+	private int counter = 0;
+
+	// Limit for super jump
+	private int jumpFrameLimit = 0;
 	private boolean spaceIsPressed = false;
-	private int w; // Canvas width
-	private int h; // Canvas height
-	private double floorLocY = 80.0; // ground location for dino
-	private Vector2D gravity = new Vector2D(0.0, -15.0); // gravity vector
+
+	// canvas dimension
+	private int w;
+	private int h;
+
+	// ground location for dino
+	private double floorLocY = 80.0;
+
+	// gravity vector
+	private Vector2D gravity = new Vector2D(0.0, -15.0);
 
 	private final FPSAnimator animator;
 	private TextRenderer renderer;
 
-	private Point2D.Double origin; // Current origin coordinates
-	private Point2D.Double cursor; // Current cursor coordinates
-
+	// obstacle lists
 	ArrayList<Cloud> cloudList;
 	ArrayList<Tree> treeList;
 	List<Fireball> fireballList;
@@ -75,52 +78,53 @@ public class View implements GLEventListener {
 
 		// init dino model info
 		Point2D.Double position = new Point2D.Double(200.0, floorLocY + Dino.DEFAULT_HEIGHT);
-		Point2D.Double[] polygonPoints = generateDinoPoints(position, Dino.DEFAULT_WIDTH, Dino.DEFAULT_HEIGHT); // generates
-																												// bounding
-																												// box
-																												// for
-																												// dino
-		this.dino = new Dino(position, polygonPoints);
-		dino.setCurrentSprite("run0"); // sets initial sprite to run0
 
-		this.canvas = canvas;
-		cursor = null;
+		// generate dino's bounding box
+		Point2D.Double[] polygonPoints = generateDinoPoints(position, Dino.DEFAULT_WIDTH, Dino.DEFAULT_HEIGHT);
+
+		// init dino
+		this.dino = new Dino(position, polygonPoints);
+
+		// sets initial sprite to run0
+		dino.setCurrentSprite("run0");
 
 		// Initialize model
-		origin = new Point2D.Double(0.0, 0.0);
+		this.canvas = canvas;
 
 		// Initialize rendering
 		canvas.addGLEventListener(this);
 		animator = new FPSAnimator(canvas, DEFAULT_FRAMES_PER_SECOND);
 		animator.start();
 
+		// init key handler
 		new KeyHandler(this);
 
-		this.cloudList = new ArrayList<Cloud>();
+		// init random object
 		rand = new Random();
 
-		addCloud();
-
+		// init obstacle lists
+		this.cloudList = new ArrayList<Cloud>();
 		this.treeList = new ArrayList<Tree>();
-		addTree();
+		this.fireballList = new ArrayList<Fireball>();
 
-		fireballList = new ArrayList<Fireball>();
-
+		// add first obstacle to view
+		addCloud();
+		// addTree();
 		addFireball();
 
-		// TODO: GAME LOOP
-		try {
-			for (;;) {
-
-				TimeUnit.SECONDS.sleep(rand.nextInt(5) + 1);
-				addCloud();
-				addFireball();
-				// addTree();
-			}
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// // TODO: GAME LOOP
+		// try {
+		// for (;;) {
+		//
+		// TimeUnit.SECONDS.sleep(rand.nextInt(5) + 1);
+		// addCloud();
+		// addFireball();
+		// // addTree();
+		// }
+		// } catch (InterruptedException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
 	}
 
 	private Point2D.Double[] generateDinoPoints(Point2D.Double center, int w, int h) {
@@ -200,25 +204,6 @@ public class View implements GLEventListener {
 
 	public void setSpacePressed(boolean state) {
 		spaceIsPressed = state;
-	}
-
-	public Point2D.Double getOrigin() {
-		return new Point2D.Double(origin.x, origin.y);
-	}
-
-	public void setOrigin(Point2D.Double origin) {
-		this.origin.x = origin.x;
-		this.origin.y = origin.y;
-		canvas.repaint();
-	}
-
-	public Point2D.Double getCursor() {
-		return cursor;
-	}
-
-	public void setCursor(Point2D.Double cursor) {
-		this.cursor = cursor;
-		canvas.repaint();
 	}
 
 	public Dino getDino() {
@@ -402,13 +387,15 @@ public class View implements GLEventListener {
 	// **********************************************************************
 	// Private Methods (Scene)
 	// **********************************************************************
+	// TODO: for score stuff
 	private void drawCursorCoordinates(GL2 gl) {
-		if (cursor == null)
-			return;
-
-		String sx = FORMAT.format(new Double(cursor.x));
-		String sy = FORMAT.format(new Double(cursor.y));
-		String s = "(" + sx + "," + sy + ")";
+		// if (cursor == null)
+		// return;
+		//
+		// String sx = FORMAT.format(new Double(cursor.x));
+		// String sy = FORMAT.format(new Double(cursor.y));
+		// String s = "(" + sx + "," + sy + ")";
+		String s = "yay";
 
 		renderer.beginRendering(this.getWidth(), this.getHeight());
 		renderer.setColor(1.0f, 1.0f, 0, 1.0f);
