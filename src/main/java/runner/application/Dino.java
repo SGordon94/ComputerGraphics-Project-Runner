@@ -1,9 +1,10 @@
 package runner.application;
 
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.Hashtable;
-
-import runner.application.obstacles.Cloud;
 
 public class Dino {
 
@@ -78,7 +79,7 @@ public class Dino {
 	public void setY(double y) {
 		// get initial y position
 		double initY = this.position.getY();
-		
+
 		// calculate difference in Y init and Y after
 		double deltaY = y - initY;
 
@@ -179,11 +180,11 @@ public class Dino {
 		switch (currentJumpType) {
 		case 1: // normal jump
 			this.setInJumpState(true);
-			jumpVelocity = new Vector2D(0.0, 50.0);
+			jumpVelocity = new Vector2D(0.0, 45.0);
 			break;
 		case 2: // super jump
 			this.setInJumpState(true);
-			jumpVelocity = new Vector2D(0.0, 75.0);
+			jumpVelocity = new Vector2D(0.0, 60.0);
 			break;
 		default: // not jumping
 			this.setInJumpState(false);
@@ -243,14 +244,18 @@ public class Dino {
 			// get point and next point
 			Point2D.Double a = points[i];
 			Point2D.Double b = points[(i + 1) % points.length];
-			
+
 			// iterate through list of obstacle points
 			for (int j = 0; j < pointsList.length; j++) {
 				Point2D.Double c = pointsList[j];
 				Point2D.Double d = pointsList[(j + 1) % pointsList.length];
-				
+
 				// check if lines intersect
-				if (doLinesIntersect(a, b, c, d)) {
+				// if (doLinesIntersect(a, b, c, d)) {
+
+				// last resort to get collisions working propery :c
+				if (doLinesIntersect(a, b, c, d) && Line2D.linesIntersect(a.getX(), a.getY(), b.getX(), b.getY(),
+						c.getX(), c.getY(), d.getX(), d.getY())) {
 					return true;
 				}
 			}

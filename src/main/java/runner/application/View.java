@@ -107,7 +107,6 @@ public class View implements GLEventListener {
 		this.fireballList = new ArrayList<Fireball>();
 
 		// add first obstacle to view
-		// addCloud();
 		addTree();
 		addFireball();
 
@@ -239,30 +238,43 @@ public class View implements GLEventListener {
 		drawTrees(gl);
 		moveTrees();
 
-		// // draw clouds
-		// drawClouds(gl);
-		// // move clouds
-		// moveClouds();
+		// dino.getPoints();
+		// gl.glBegin(GL2.GL_LINE_LOOP);
+		// gl.glColor3d(1, 1, 1);
+		//
+		// for (Point2D.Double point : dino.getPoints()) {
+		// gl.glVertex2d(point.getX(), point.getY());
+		// }
+		//
+		// gl.glEnd();
 
 	}
 
+	// generate fractal tree
 	public List<Point2D.Double> generateTree(double x1, double y1, double angle, double depth, double scale,
 			List<Point2D.Double> test) {
+
+		// recursive base case - return when depth is 0
 		if (depth == 0)
 			return null;
 
+		// calculate x2,y2 points relative to given x1, y1
 		double x2 = x1 + (Math.cos(Math.toRadians(angle)) * depth * scale);
 		double y2 = y1 + (Math.sin(Math.toRadians(angle)) * depth * scale);
 
+		// add pair of points to list
 		test.add(new Point2D.Double(x1, y1));
 		test.add(new Point2D.Double(x2, y2));
 
+		// recursively generate more points but at a higher depth
 		generateTree(x2, y2, angle - 20, depth - 1, scale, test);
 		generateTree(x2, y2, angle + 20, depth - 1, scale, test);
 
+		// return list of generated points
 		return test;
 	}
 
+	// convert list to array
 	public Point2D.Double[] generateTreePoints(List<Point2D.Double> test) {
 		Point2D.Double[] ok = test.toArray(new Point2D.Double[test.size()]);
 		return ok;
@@ -331,7 +343,7 @@ public class View implements GLEventListener {
 		}
 
 		// update dino sprite every 5 frames
-		if (counter % 30 == 0) {
+		if (counter % 25 == 0) {
 			String currentSprite = dino.getCurrentSprite();
 			if (currentSprite == "crouch0")
 				dino.setCurrentSprite("crouch1");
@@ -562,7 +574,7 @@ public class View implements GLEventListener {
 		List<Point2D.Double> treePoints = new ArrayList<Point2D.Double>();
 		Point2D.Double[] treePointsArray;
 
-		Point2D.Double position = new Point2D.Double(1100, 15.0);
+		Point2D.Double position = new Point2D.Double(1100, 35.0);
 
 		// TODO: parameterize tree generation
 		treePointsArray = generateTreePoints(generateTree(position.getX(), position.getY(), 90, 9, 2.0, treePoints));
@@ -594,8 +606,13 @@ public class View implements GLEventListener {
 				iterator.remove();
 			}
 
+			// TODO: collision end game
 			if (dino.collides(fiyaBall.getPoints())) {
-				System.out.println("pley");
+				System.out.println("nooo");
+
+				// remove all obstacles
+				fireballList = new ArrayList<Fireball>();
+				treeList = new ArrayList<Tree>();
 			}
 		}
 	}
@@ -611,9 +628,13 @@ public class View implements GLEventListener {
 			// move tree
 			tree.moveTree();
 
-			// detect collision
+			// TODO: collision end game
 			if (dino.collides(tree.getPoints())) {
 				System.out.println("please");
+
+				// remove all obstacles
+				fireballList = new ArrayList<Fireball>();
+				treeList = new ArrayList<Tree>();
 			}
 		}
 	}
