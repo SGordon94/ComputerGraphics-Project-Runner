@@ -6,14 +6,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
+
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.util.texture.Texture;
+
 import runner.application.obstacles.Cloud;
 import runner.application.obstacles.Fireball;
 import runner.application.obstacles.Tree;
@@ -104,22 +108,22 @@ public class View implements GLEventListener {
 
 		// add first obstacle to view
 		// addCloud();
-		// addTree();
+		addTree();
 		addFireball();
 
-		// // TODO: GAME LOOP
-		// try {
-		// for (;;) {
-		//
-		// TimeUnit.SECONDS.sleep(rand.nextInt(5) + 1);
-		// addCloud();
-		// addFireball();
-		// // addTree();
-		// }
-		// } catch (InterruptedException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
+		// TODO: GAME LOOP
+		try {
+			for (;;) {
+
+				TimeUnit.SECONDS.sleep(rand.nextInt(7) + 1);
+				// addCloud();
+				addFireball();
+				addTree();
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	// **********************************************************************
@@ -231,14 +235,15 @@ public class View implements GLEventListener {
 		drawFireBalls(gl);
 		moveFireBalls();
 
+		// draw / move trees
+		drawTrees(gl);
+		moveTrees();
+
 		// // draw clouds
 		// drawClouds(gl);
 		// // move clouds
 		// moveClouds();
 
-		// drawTrees(gl);
-
-		// moveTrees();
 	}
 
 	public List<Point2D.Double> generateTree(double x1, double y1, double angle, double depth, double scale,
@@ -449,14 +454,6 @@ public class View implements GLEventListener {
 
 		while (iterator.hasNext()) {
 			Fireball fiyaball = iterator.next();
-			// gl.glBegin(GL2.GL_POLYGON);
-			// gl.glColor3d(1.0, 1.0, 1.0);
-			//
-			// for (Point2D.Double point : fiyaball.getPoints()) {
-			// gl.glVertex2d(point.getX(), point.getY());
-			// }
-			//
-			// gl.glEnd();
 			// enable blending to allow for png transparency (for texture drawing only)
 			gl.glEnable(GL2.GL_BLEND);
 			gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
@@ -565,12 +562,16 @@ public class View implements GLEventListener {
 		List<Point2D.Double> treePoints = new ArrayList<Point2D.Double>();
 		Point2D.Double[] treePointsArray;
 
-		Point2D.Double position = new Point2D.Double(1100, 25.0);
+		Point2D.Double position = new Point2D.Double(1100, 15.0);
 
 		// TODO: parameterize tree generation
 		treePointsArray = generateTreePoints(generateTree(position.getX(), position.getY(), 90, 9, 2.0, treePoints));
 
-		treeList.add(new Tree(position, new Vector2D(-3, 0), treePointsArray));
+		// init list iterator
+		ListIterator<Tree> iterator = treeList.listIterator();
+
+		// add new fire ball to list
+		iterator.add(new Tree(position, new Vector2D(-3, 0), treePointsArray));
 	}
 
 	// **********************************************************************
@@ -581,7 +582,7 @@ public class View implements GLEventListener {
 		// init list iterator
 		ListIterator<Fireball> iterator = fireballList.listIterator();
 
-		// iterator through fireball list
+		// iterate through fireball list
 		while (iterator.hasNext()) {
 			Fireball fiyaBall = iterator.next();
 
@@ -592,17 +593,28 @@ public class View implements GLEventListener {
 			if (fiyaBall.getPosition().getX() <= -700) {
 				iterator.remove();
 			}
-		}
-	}
 
-	public void moveTrees() {
-		for (Tree tree : treeList) {
-			tree.moveTree();
-
-			if (dino.collides(tree.getPoints())) {
-				System.out.println("GAME OVER BUT I DONT WANT TO FAIL");
+			if (dino.collides(fiyaBall.getPoints())) {
+				System.out.println("pley");
 			}
 		}
 	}
 
+	public void moveTrees() {
+		// init list iterator
+		ListIterator<Tree> iterator = treeList.listIterator();
+
+		// iterator through tree list
+		while (iterator.hasNext()) {
+			Tree tree = iterator.next();
+
+			// move tree
+			tree.moveTree();
+
+			// detect collision
+			if (dino.collides(tree.getPoints())) {
+				System.out.println("please");
+			}
+		}
+	}
 }

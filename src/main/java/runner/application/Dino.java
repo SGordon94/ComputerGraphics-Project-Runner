@@ -76,8 +76,10 @@ public class Dino {
 	}
 
 	public void setY(double y) {
+		// get initial y position
 		double initY = this.position.getY();
-
+		
+		// calculate difference in Y init and Y after
 		double deltaY = y - initY;
 
 		// apply delta to all y's
@@ -156,7 +158,11 @@ public class Dino {
 		return sprites.getOrDefault(currentSprite, new ImageResource("sprites/dino_jump.png"));
 	}
 
+	// **********************************************************************
+	// Private Methods
+	// **********************************************************************
 	private void loadSprites() {
+		// load sprites from sprites folder and store into has table
 		sprites = new Hashtable<String, ImageResource>();
 		sprites.put("crouch0", new ImageResource("sprites/dino_crouch_0.png"));
 		sprites.put("crouch1", new ImageResource("sprites/dino_crouch_1.png"));
@@ -168,6 +174,7 @@ public class Dino {
 	// **********************************************************************
 	// Public Methods
 	// **********************************************************************
+	// set jump velocities and jump state
 	public void jump() {
 		switch (currentJumpType) {
 		case 1: // normal jump
@@ -185,7 +192,7 @@ public class Dino {
 		}
 	}
 
-	//
+	// check to see what side point is on for line segment
 	public int sideTest(Point2D.Double a, Point2D.Double b, Point2D.Double p) {
 		// cross product
 		double result = (b.getX() - a.getX()) * (p.getY() - a.getY()) - (b.getY() - a.getY()) * (p.getX() - a.getX());
@@ -201,27 +208,22 @@ public class Dino {
 		return -1;
 	}
 
-	public boolean isPointOnLine(Point2D.Double a, Point2D.Double b, Point2D.Double p) {
-		// shift points / vector
-		Point2D.Double shiftB = new Point2D.Double(b.getX() - a.getX(), b.getY() - a.getY());
-		Point2D.Double shiftP = new Point2D.Double(p.getX() - a.getX(), p.getY() - a.getY());
-
-		// find cross product
-		double crossProduct = (shiftB.getX() * shiftP.getY() - shiftP.getX() * shiftB.getY());
-
-		// if crossproduct < 0 then given point is on segment
-		return Math.abs(crossProduct) < 0.000001;
-	}
-
+	// check to see if 2 given lines are intersecting
 	public boolean lineIntersect(Point2D.Double a, Point2D.Double b, Point2D.Double c, Point2D.Double d) {
 		// is point c on line seg ab
-		boolean isPointOnLineTest1 = isPointOnLine(a, b, c);
+		int isPointCOnLineAB = sideTest(a, b, c);
+
 		// is point d on line seg ab
-		boolean isPointOnLineTest2 = isPointOnLine(a, b, d);
+		int isPointDOnLineAB = sideTest(a, b, c);
+
+		// if results are 0 then points are on the line
+		boolean isPointOnLineTest1 = isPointCOnLineAB == 0 ? true : false;
+		boolean isPointOnLineTest2 = isPointDOnLineAB == 0 ? true : false;
 
 		// test cd intersects ab by checking if ab are on different sides of cd
 		boolean test = (sideTest(a, b, c) > 0) ^ (sideTest(a, b, d) > 0);
 
+		// return result
 		return isPointOnLineTest1 || isPointOnLineTest2 || test;
 
 	}
@@ -233,26 +235,26 @@ public class Dino {
 		return result;
 	}
 
+	// collision detection function * adapted from homework *
 	public boolean collides(Point2D.Double[] pointsList) {
+		// iterate through list of dinosaur point
 		for (int i = 0; i < points.length; i++) {
+
+			// get point and next point
 			Point2D.Double a = points[i];
 			Point2D.Double b = points[(i + 1) % points.length];
-			// Point2D.Double b = points[(i + 1) % points.length];
+			
+			// iterate through list of obstacle points
 			for (int j = 0; j < pointsList.length; j++) {
 				Point2D.Double c = pointsList[j];
 				Point2D.Double d = pointsList[(j + 1) % pointsList.length];
-
+				
+				// check if lines intersect
 				if (doLinesIntersect(a, b, c, d)) {
 					return true;
 				}
 			}
 		}
 		return false;
-	}
-
-	public boolean collides(Cloud cloud) {
-		Point2D.Double[] cloudPoints = cloud.getPoints();
-
-		return collides(cloudPoints);
 	}
 }
