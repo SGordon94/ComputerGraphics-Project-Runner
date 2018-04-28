@@ -1,0 +1,1 @@
+To build this project, please navigate to the Build director and run `gradle installDist`
