@@ -74,6 +74,10 @@ public class View implements GLEventListener {
 
 	private final FPSAnimator animator;
 
+	private Background foreground;
+	private Background background1;
+	private Background background2;
+	
 	// obstacle lists
 	ArrayList<Cloud> cloudList;
 	ArrayList<Tree> treeList;
@@ -142,6 +146,10 @@ public class View implements GLEventListener {
 	public void init(GLAutoDrawable drawable) {
 		w = drawable.getWidth();
 		h = drawable.getHeight();
+
+		foreground = new Background(new ImageResource("sprites/parallax_bush.png"), this.getWidth());
+		background1 = new Background(new ImageResource("sprites/parallax_bush.png"), this.getWidth());
+		background2 = new Background(new ImageResource("sprites/parallax_sky.gif"), this.getWidth());
 
 		score = 0;
 		renderer = new TextRenderer(new Font("Monospaced", Font.PLAIN, fontSize), true, true);
@@ -235,10 +243,14 @@ public class View implements GLEventListener {
 		setProjection(gl);
 
 		// TODO: BACKGROUND PLEASE
-		drawBackground(gl);
+		 drawBackground(gl);
+		 
+		 drawSkyTexture(gl,background2,3.5,0);
 
 		// TODO: GROUND PLEASE
-		drawGround(gl);
+		//drawGround(gl);
+
+		 drawGroundTexture(gl,background1,2.5,this.getHeight()/3);
 
 		// draw dino character
 		drawDino(gl);
@@ -250,6 +262,8 @@ public class View implements GLEventListener {
 		// draw / move trees
 		drawTrees(gl);
 		moveTrees();
+		
+		drawGroundTexture(gl,foreground,1.5,0);
 
 		// draw the score
 		drawScore(drawable);
@@ -494,6 +508,146 @@ public class View implements GLEventListener {
 		gl.glBindTexture(GL2.GL_TEXTURE_2D, 0); // unbind any textures
 		gl.glDisable(GL2.GL_TEXTURE_2D); // disable texture drawing
 		gl.glDisable(GL2.GL_BLEND); // disable blending
+	}
+	
+private void drawSkyTexture(GL2 gl, Background ground, double layer, double offsetY) {
+		
+		int yo = (this.getHeight()/3);
+
+		int width = ground.GetImg().getTexture().getImageWidth();
+		//int height = ground.GetImg().getTexture().getImageHeight();
+		int height = this.getHeight();
+
+		// enable blending to allow for png transparency (for texture drawing only)
+		gl.glEnable(GL2.GL_BLEND);
+		gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
+
+		// get texture to draw
+		Texture texture = ground.GetImg().getTexture();
+		if (texture != null) {
+			gl.glBindTexture(GL2.GL_TEXTURE_2D, texture.getTextureObject());
+		}
+
+		// enable texture drawing
+		gl.glEnable(GL2.GL_TEXTURE_2D);
+		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
+		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);		
+		
+		for (int i = 0; i < ground.GetX().size(); i++) {
+
+			gl.glBegin(GL2.GL_QUADS);
+
+			gl.glColor3d(0.0470588, 0.192157, 0.4);
+			
+			// texture coordinates are relative to texture's bounding box and takes values
+			// between 0.0 and 1.0
+			// so to use full bounding box width and height, texture coordinates must span 0
+			// and 1
+			// for sprite facing left, texture coordinate starts in top right and goes
+			// counter-clockwise so that sprite is facing right in program
+			gl.glTexCoord2d(0, 1);
+			gl.glVertex2d(ground.GetX().get(i), yo+offsetY);
+
+			gl.glTexCoord2d(1, 1);
+			gl.glVertex2d(ground.GetX().get(i) + width, yo+offsetY);
+
+			gl.glTexCoord2d(1, 0);
+			gl.glVertex2d(ground.GetX().get(i) + width, height+offsetY);
+
+			gl.glTexCoord2d(0, 0);
+			gl.glVertex2d(ground.GetX().get(i), height+offsetY);			
+			
+			if(ground.GetX().get(i) < width*-1) {
+				if(ground.GetLast() == ground.GetX().size()-1) {
+					ground.GetX().set(i, ground.GetX().get(ground.GetLast())+(double)width-(width/animator.getFPS())/(2*layer));
+				} else {
+					ground.GetX().set(i, ground.GetX().get(ground.GetLast())+(double)width);
+				}
+				ground.SetLast(i);
+				System.out.println("Last: " + ground.GetLast());
+			} else {
+				ground.GetX().set(i, ground.GetX().get(i)-(width/animator.getFPS())/(2*layer) );
+			}
+
+			gl.glEnd();
+			//gl.glFlush();
+
+		}
+		
+		gl.glBindTexture(GL2.GL_TEXTURE_2D, 0); // unbind any textures
+		gl.glDisable(GL2.GL_TEXTURE_2D); // disable texture drawing
+		gl.glDisable(GL2.GL_BLEND); // disable blending
+
+	}
+	
+	private void drawGroundTexture(GL2 gl, Background ground, double layer, double offsetY) {
+		
+		int yo = 0;
+
+		int width = ground.GetImg().getTexture().getImageWidth();
+		//int height = ground.GetImg().getTexture().getImageHeight();
+		int height = this.getHeight()/3;
+
+		// enable blending to allow for png transparency (for texture drawing only)
+		gl.glEnable(GL2.GL_BLEND);
+		gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
+
+		// get texture to draw
+		Texture texture = ground.GetImg().getTexture();
+		if (texture != null) {
+			gl.glBindTexture(GL2.GL_TEXTURE_2D, texture.getTextureObject());
+		}
+
+		// enable texture drawing
+		gl.glEnable(GL2.GL_TEXTURE_2D);
+		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
+		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);		
+		
+		for (int i = 0; i < ground.GetX().size(); i++) {
+
+			gl.glBegin(GL2.GL_QUADS);
+
+			gl.glColor3d(0.3f, 0.3f, 0.3f);
+			
+			// texture coordinates are relative to texture's bounding box and takes values
+			// between 0.0 and 1.0
+			// so to use full bounding box width and height, texture coordinates must span 0
+			// and 1
+			// for sprite facing left, texture coordinate starts in top right and goes
+			// counter-clockwise so that sprite is facing right in program
+			gl.glTexCoord2d(0, 1);
+			gl.glVertex2d(ground.GetX().get(i), yo+offsetY);
+
+			gl.glTexCoord2d(1, 1);
+			gl.glVertex2d(ground.GetX().get(i) + width, yo+offsetY);
+
+			gl.glTexCoord2d(1, 0);
+			gl.glVertex2d(ground.GetX().get(i) + width, height+offsetY);
+
+			gl.glTexCoord2d(0, 0);
+			gl.glVertex2d(ground.GetX().get(i), height+offsetY);			
+			
+			if(ground.GetX().get(i) < width*-1) {
+				if(ground.GetLast() == ground.GetX().size()-1) {
+					ground.GetX().set(i, ground.GetX().get(ground.GetLast())+(double)width-(width/animator.getFPS())/(2*layer)-0.5);
+				} else {
+					ground.GetX().set(i, ground.GetX().get(ground.GetLast())+(double)width);
+				}
+				ground.SetLast(i);
+				System.out.println("Last: " + ground.GetLast());
+			} else {
+				ground.GetX().set(i, ground.GetX().get(i)-(width/animator.getFPS())/(2*layer)-0.5 );
+			}
+
+			gl.glEnd();
+			//gl.glFlush();
+
+		}
+		
+		gl.glBindTexture(GL2.GL_TEXTURE_2D, 0); // unbind any textures
+		gl.glDisable(GL2.GL_TEXTURE_2D); // disable texture drawing
+		gl.glDisable(GL2.GL_BLEND); // disable blending
+
 	}
 
 	private void drawFireBalls(GL2 gl) {
