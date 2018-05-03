@@ -1,5 +1,6 @@
 package runner.application;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.geom.Point2D;
@@ -74,10 +75,19 @@ public class View implements GLEventListener {
 
 	private final FPSAnimator animator;
 
-	private Background foreground;
-	private Background background1;
-	private Background background2;
-	
+	// ArrayLists to hold all of the images for the parallax backgrounds
+	private ArrayList<Background> spooky;
+	private ArrayList<Background> city;
+	private ArrayList<Background> mountain;
+
+	// Used to decide which background to draw
+	private int currentBG = 1;
+
+	// Horizontal speed for background scrolling
+	private final double hspeed = 4;
+	// Different speeds for background layers
+	private final double layerSpeeds[] = { 1, 2, 3, 3.2, 3.5, 3.7, 3.8, 3.9 };
+
 	// obstacle lists
 	ArrayList<Cloud> cloudList;
 	ArrayList<Tree> treeList;
@@ -93,6 +103,11 @@ public class View implements GLEventListener {
 
 		// generate dino's bounding box
 		Point2D.Double[] polygonPoints = generateDinoPoints(position, Dino.DEFAULT_WIDTH, Dino.DEFAULT_HEIGHT);
+		
+		// init backgrounds
+		spooky = new ArrayList<Background>();
+		city = new ArrayList<Background>();
+		mountain = new ArrayList<Background>();
 
 		// init dino
 		this.dino = new Dino(position, polygonPoints);
@@ -147,9 +162,39 @@ public class View implements GLEventListener {
 		w = drawable.getWidth();
 		h = drawable.getHeight();
 
-		foreground = new Background(new ImageResource("sprites/parallax_bush.png"), this.getWidth());
-		background1 = new Background(new ImageResource("sprites/parallax_bush.png"), this.getWidth());
-		background2 = new Background(new ImageResource("sprites/parallax_sky.gif"), this.getWidth());
+		// Init the "spooky" parallax backdrop
+		spooky.add(new Background(new ImageResource("sprites/parallax/snowGround.png"), this.getWidth()));
+		spooky.add(new Background(new ImageResource("sprites/parallax/littleTrees.png"), this.getWidth()));
+		spooky.add(new Background(new ImageResource("sprites/parallax/bigTrees.png"), this.getWidth()));
+		spooky.add(new Background(new ImageResource("sprites/parallax/bigTrees2.png"), this.getWidth()));
+		spooky.add(new Background(new ImageResource("sprites/parallax/bigTrees3.png"), this.getWidth()));
+		spooky.add(new Background(new ImageResource("sprites/parallax/stars.png"), this.getWidth()));
+		spooky.add(new Background(new ImageResource("sprites/parallax/Moon.png"), this.getWidth()));
+		
+		// City
+		city.add(new Background(new ImageResource("sprites/parallax/cityGround.png"), this.getWidth()));
+		city.add(new Background(new ImageResource("sprites/parallax/cityTrees.png"), this.getWidth()));
+		city.add(new Background(new ImageResource("sprites/parallax/cityColorBuildings.png"), this.getWidth()));
+		city.add(new Background(new ImageResource("sprites/parallax/cityFarBuildings1.png"), this.getWidth()));
+		city.add(new Background(new ImageResource("sprites/parallax/cityFarBuildings2.png"), this.getWidth()));
+		city.add(new Background(new ImageResource("sprites/parallax/cityFarBuildings3.png"), this.getWidth()));
+		city.add(new Background(new ImageResource("sprites/parallax/citySun.png"), this.getWidth()));
+		city.add(new Background(new ImageResource("sprites/parallax/cityBG.png"), this.getWidth()));
+		
+		// Mountain
+		mountain.add(new Background(new ImageResource("sprites/parallax/mountainGround.png"), this.getWidth()));
+		mountain.add(new Background(new ImageResource("sprites/parallax/mountainTrees.png"), this.getWidth()));
+		mountain.add(new Background(new ImageResource("sprites/parallax/mountains1.png"), this.getWidth()));
+		mountain.add(new Background(new ImageResource("sprites/parallax/mountainClouds.png"), this.getWidth()));
+		mountain.add(new Background(new ImageResource("sprites/parallax/mountainBG.png"), this.getWidth()));
+		
+
+		/*groundtexture = new Background(new ImageResource("sprites/parallax/snowGround.png"), this.getWidth());
+		background1 = new Background(new ImageResource("sprites/parallax/littleTrees.png"), this.getWidth());
+		background2 = new Background(new ImageResource("sprites/parallax/bigTrees.png"), this.getWidth());
+		background3 = new Background(new ImageResource("sprites/parallax/bigTrees2.png"), this.getWidth());
+		background4 = new Background(new ImageResource("sprites/parallax/bigTrees3.png"), this.getWidth());
+		background5 = new Background(new ImageResource("sprites/parallax/Moon.png"), this.getWidth());*/
 
 		score = 0;
 		renderer = new TextRenderer(new Font("Monospaced", Font.PLAIN, fontSize), true, true);
@@ -203,6 +248,20 @@ public class View implements GLEventListener {
 	public void setDino(Dino saur) {
 		this.dino = saur;
 	}
+	
+	public void incrementCurrentBG() {
+		if(currentBG < 3) 
+			currentBG++;
+		else
+			currentBG = 1;
+	}
+	
+	public void decrementCurrentBG() {
+		if(currentBG > 1) 
+			currentBG--;
+		else
+			currentBG = 3;
+	}
 
 	// set frame limit for super jump
 	public void setSuperJumpFrameLimit(int frameLimit) {
@@ -235,6 +294,7 @@ public class View implements GLEventListener {
 
 	private void render(GLAutoDrawable drawable) {
 		GL2 gl = drawable.getGL().getGL2();
+		gl.setSwapInterval(100);
 
 		// Clear the buffer
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
@@ -243,14 +303,46 @@ public class View implements GLEventListener {
 		setProjection(gl);
 
 		// TODO: BACKGROUND PLEASE
-		 drawBackground(gl);
-		 
-		 drawSkyTexture(gl,background2,3.5,0);
+		// drawBackground(gl, new Color(0,0,0));
 
-		// TODO: GROUND PLEASE
-		//drawGround(gl);
 
-		 drawGroundTexture(gl,background1,2.5,this.getHeight()/3);
+		// Decide which parallax background to display
+		switch (currentBG) {
+		// Draw the spooky background
+		case 1:					
+			for (int i = spooky.size()-1; i > 0; i--) {
+				if (i < 2) {
+					drawGroundTexture(gl, spooky.get(i), layerSpeeds[i], this.getHeight() / 4.5);
+				} else {
+					drawSkyTexture(gl, spooky.get(i), layerSpeeds[i], this.getHeight() / 4.5);
+				}
+
+			}
+			drawGroundTexture(gl, spooky.get(0), layerSpeeds[0], -this.getHeight() / 10);
+			break;
+		// Draw the city background
+		case 2:		
+			for (int i = city.size()-1; i > 0; i--) {
+					drawSkyTexture(gl, city.get(i), layerSpeeds[i], (this.getHeight() / 4.5));	
+
+			}
+			drawGroundTexture(gl, city.get(0), layerSpeeds[0], -this.getHeight() / 10);
+			break;
+		// Draw the mountain background
+		case 3:					
+			for (int i = mountain.size()-1; i > 0; i--) {
+				if (i < 2) {
+					drawGroundTexture(gl, mountain.get(i), layerSpeeds[i], this.getHeight() / 4.5);
+				} else {
+					drawSkyTexture(gl, mountain.get(i), layerSpeeds[i], this.getHeight() / 4.5);
+				}
+
+			}
+			drawGroundTexture(gl, mountain.get(0), layerSpeeds[0], -this.getHeight() / 10);
+			break;
+		default:
+			break;
+		}
 
 		// draw dino character
 		drawDino(gl);
@@ -262,21 +354,9 @@ public class View implements GLEventListener {
 		// draw / move trees
 		drawTrees(gl);
 		moveTrees();
-		
-		drawGroundTexture(gl,foreground,1.5,0);
 
 		// draw the score
 		drawScore(drawable);
-
-		// dino.getPoints();
-		// gl.glBegin(GL2.GL_LINE_LOOP);
-		// gl.glColor3d(1, 1, 1);
-		//
-		// for (Point2D.Double point : dino.getPoints()) {
-		// gl.glVertex2d(point.getX(), point.getY());
-		// }
-		//
-		// gl.glEnd();
 
 	}
 
@@ -373,7 +453,8 @@ public class View implements GLEventListener {
 		}
 
 		// update dino sprite every 5 frames
-		if (counter % 25 == 0) {
+		// Change mod from 25 to 5 to speed up dino run
+		if (counter % 5 == 0) {
 			String currentSprite = dino.getCurrentSprite();
 			if (currentSprite == "crouch0")
 				dino.setCurrentSprite("crouch1");
@@ -390,17 +471,17 @@ public class View implements GLEventListener {
 	// Private Methods (Scene)
 	// **********************************************************************
 
-	private void drawBackground(GL2 gl) {
+	private void drawBackground(GL2 gl, Color color) {
 		gl.glBegin(GL2.GL_POLYGON);
 
-		gl.glColor3d(0.0470588, 0.192157, 0.4);
+		double red = color.getRed()/255;
+		double green = color.getGreen()/255;
+		double blue = color.getBlue()/255;
+		
+		gl.glColor3d(red, green, blue);
 		gl.glVertex2f(0, 0);
 		gl.glVertex2f(this.getWidth(), 0);
-
-		gl.glColor3d(0.992157, 0.490196, 0.00392157);
-
 		gl.glVertex2f(this.getWidth(), this.getHeight());
-
 		gl.glVertex2f(0, this.getHeight());
 
 		gl.glEnd();
@@ -509,14 +590,14 @@ public class View implements GLEventListener {
 		gl.glDisable(GL2.GL_TEXTURE_2D); // disable texture drawing
 		gl.glDisable(GL2.GL_BLEND); // disable blending
 	}
-	
-private void drawSkyTexture(GL2 gl, Background ground, double layer, double offsetY) {
-		
-		int yo = (this.getHeight()/3);
+
+	private void drawSkyTexture(GL2 gl, Background ground, double layer, double offsetY) {
+
+		int yo = 0;
 
 		int width = ground.GetImg().getTexture().getImageWidth();
-		//int height = ground.GetImg().getTexture().getImageHeight();
-		int height = this.getHeight();
+		// int height = ground.GetImg().getTexture().getImageHeight();
+		int height = (int) (this.getHeight());
 
 		// enable blending to allow for png transparency (for texture drawing only)
 		gl.glEnable(GL2.GL_BLEND);
@@ -531,14 +612,14 @@ private void drawSkyTexture(GL2 gl, Background ground, double layer, double offs
 		// enable texture drawing
 		gl.glEnable(GL2.GL_TEXTURE_2D);
 		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
-		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);		
-		
+		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
+
 		for (int i = 0; i < ground.GetX().size(); i++) {
 
 			gl.glBegin(GL2.GL_QUADS);
 
-			gl.glColor3d(0.0470588, 0.192157, 0.4);
-			
+			gl.glColor3d(1, 1, 1);
+
 			// texture coordinates are relative to texture's bounding box and takes values
 			// between 0.0 and 1.0
 			// so to use full bounding box width and height, texture coordinates must span 0
@@ -546,47 +627,47 @@ private void drawSkyTexture(GL2 gl, Background ground, double layer, double offs
 			// for sprite facing left, texture coordinate starts in top right and goes
 			// counter-clockwise so that sprite is facing right in program
 			gl.glTexCoord2d(0, 1);
-			gl.glVertex2d(ground.GetX().get(i), yo+offsetY);
+			gl.glVertex2d(ground.GetX().get(i), yo + offsetY);
 
 			gl.glTexCoord2d(1, 1);
-			gl.glVertex2d(ground.GetX().get(i) + width, yo+offsetY);
+			gl.glVertex2d(ground.GetX().get(i) + width, yo + offsetY);
 
 			gl.glTexCoord2d(1, 0);
-			gl.glVertex2d(ground.GetX().get(i) + width, height+offsetY);
+			gl.glVertex2d(ground.GetX().get(i) + width, height);
 
 			gl.glTexCoord2d(0, 0);
-			gl.glVertex2d(ground.GetX().get(i), height+offsetY);			
-			
-			if(ground.GetX().get(i) < width*-1) {
-				if(ground.GetLast() == ground.GetX().size()-1) {
-					ground.GetX().set(i, ground.GetX().get(ground.GetLast())+(double)width-(width/animator.getFPS())/(2*layer));
+			gl.glVertex2d(ground.GetX().get(i), height);
+
+			if (ground.GetX().get(i) < width * -1) {
+				if (ground.GetLast() == ground.GetX().size() - 1) {
+					ground.GetX().set(i, ground.GetX().get(ground.GetLast()) + (double) width - (hspeed - layer));
 				} else {
-					ground.GetX().set(i, ground.GetX().get(ground.GetLast())+(double)width);
+					ground.GetX().set(i, ground.GetX().get(ground.GetLast()) + (double) width);
 				}
 				ground.SetLast(i);
 				System.out.println("Last: " + ground.GetLast());
 			} else {
-				ground.GetX().set(i, ground.GetX().get(i)-(width/animator.getFPS())/(2*layer) );
+				ground.GetX().set(i, ground.GetX().get(i) - (hspeed - layer));
 			}
 
 			gl.glEnd();
-			//gl.glFlush();
+			// gl.glFlush();
 
 		}
-		
+
 		gl.glBindTexture(GL2.GL_TEXTURE_2D, 0); // unbind any textures
 		gl.glDisable(GL2.GL_TEXTURE_2D); // disable texture drawing
 		gl.glDisable(GL2.GL_BLEND); // disable blending
 
 	}
-	
+
 	private void drawGroundTexture(GL2 gl, Background ground, double layer, double offsetY) {
-		
+
 		int yo = 0;
 
 		int width = ground.GetImg().getTexture().getImageWidth();
-		//int height = ground.GetImg().getTexture().getImageHeight();
-		int height = this.getHeight()/3;
+		// int height = ground.GetImg().getTexture().getImageHeight();
+		int height = this.getHeight() / 3;
 
 		// enable blending to allow for png transparency (for texture drawing only)
 		gl.glEnable(GL2.GL_BLEND);
@@ -601,14 +682,14 @@ private void drawSkyTexture(GL2 gl, Background ground, double layer, double offs
 		// enable texture drawing
 		gl.glEnable(GL2.GL_TEXTURE_2D);
 		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
-		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);		
-		
+		gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
+
 		for (int i = 0; i < ground.GetX().size(); i++) {
 
 			gl.glBegin(GL2.GL_QUADS);
 
-			gl.glColor3d(0.3f, 0.3f, 0.3f);
-			
+			gl.glColor3d(1, 1, 1);
+
 			// texture coordinates are relative to texture's bounding box and takes values
 			// between 0.0 and 1.0
 			// so to use full bounding box width and height, texture coordinates must span 0
@@ -616,34 +697,34 @@ private void drawSkyTexture(GL2 gl, Background ground, double layer, double offs
 			// for sprite facing left, texture coordinate starts in top right and goes
 			// counter-clockwise so that sprite is facing right in program
 			gl.glTexCoord2d(0, 1);
-			gl.glVertex2d(ground.GetX().get(i), yo+offsetY);
+			gl.glVertex2d(ground.GetX().get(i), yo + offsetY);
 
 			gl.glTexCoord2d(1, 1);
-			gl.glVertex2d(ground.GetX().get(i) + width, yo+offsetY);
+			gl.glVertex2d(ground.GetX().get(i) + width, yo + offsetY);
 
 			gl.glTexCoord2d(1, 0);
-			gl.glVertex2d(ground.GetX().get(i) + width, height+offsetY);
+			gl.glVertex2d(ground.GetX().get(i) + width, height + offsetY);
 
 			gl.glTexCoord2d(0, 0);
-			gl.glVertex2d(ground.GetX().get(i), height+offsetY);			
-			
-			if(ground.GetX().get(i) < width*-1) {
-				if(ground.GetLast() == ground.GetX().size()-1) {
-					ground.GetX().set(i, ground.GetX().get(ground.GetLast())+(double)width-(width/animator.getFPS())/(2*layer)-0.5);
+			gl.glVertex2d(ground.GetX().get(i), height + offsetY);
+
+			if (ground.GetX().get(i) < width * -1) {
+				if (ground.GetLast() == ground.GetX().size() - 1) {
+					ground.GetX().set(i, ground.GetX().get(ground.GetLast()) + (double) width - (hspeed - layer));
 				} else {
-					ground.GetX().set(i, ground.GetX().get(ground.GetLast())+(double)width);
+					ground.GetX().set(i, ground.GetX().get(ground.GetLast()) + (double) width);
 				}
 				ground.SetLast(i);
 				System.out.println("Last: " + ground.GetLast());
 			} else {
-				ground.GetX().set(i, ground.GetX().get(i)-(width/animator.getFPS())/(2*layer)-0.5 );
+				ground.GetX().set(i, ground.GetX().get(i) - (hspeed - layer));
 			}
 
 			gl.glEnd();
-			//gl.glFlush();
+			// gl.glFlush();
 
 		}
-		
+
 		gl.glBindTexture(GL2.GL_TEXTURE_2D, 0); // unbind any textures
 		gl.glDisable(GL2.GL_TEXTURE_2D); // disable texture drawing
 		gl.glDisable(GL2.GL_BLEND); // disable blending

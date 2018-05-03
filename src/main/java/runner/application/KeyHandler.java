@@ -35,6 +35,14 @@ public class KeyHandler extends KeyAdapter {
 			if (!view.isSpacePressed()) view.setSuperJumpFrameLimit(view.getCounter() + 15);
 			view.setSpacePressed(true);
 		}
+		
+		if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+			view.decrementCurrentBG();
+		}
+		
+		if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+			view.incrementCurrentBG();
+		}
 	}
 
 	// function to handle spacebar release
